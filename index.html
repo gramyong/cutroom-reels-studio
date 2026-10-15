@@ -1031,7 +1031,27 @@ $('#accountForm').addEventListener('submit',ev=>{
  }
 });
 $('#deleteAccount').addEventListener('click',()=>{if(accountModalMode!=='edit')return;if(state.accounts.length===1){showToast('마지막 계정은 삭제할 수 없어요.');return;}const a=currentAccount(),fallback=state.accounts.find(x=>x.id!==a.id),cnt=inAccount(a.id).length;const msg=cnt?`“${a.name}” 계정을 삭제할까요?\n소속 영상 ${cnt}개는 삭제되지 않고 “${fallback.name}” 계정으로 이동합니다.`:`“${a.name}” 계정을 삭제할까요?`;if(!confirm(msg))return;for(const p of inAccount(a.id))p.accountId=fallback.id;state.accounts=state.accounts.filter(x=>x.id!==a.id);state.activeAccountId=fallback.id;state.activeId=inAccount(fallback.id)[0]?.id||null;closeAccountModal();render();showToast(`계정을 삭제했습니다. 영상 ${cnt}개는 보존됩니다.`);});
-$('#cancelNew').addEventListener('click',closeModal);$('#newOverlay').addEventListener('click',ev=>{if(ev.target===$('#newOverlay'))closeModal();});$('#cancelAccount').addEventListener('click',closeAccountModal);$('#accountOverlay').addEventListener('click',ev=>{if(ev.target===$('#accountOverlay'))closeAccountModal();});document.addEventListener('keydown',ev=>{if(ev.key==='Escape'){closeModal();closeAccountModal();}});$('#mobileToggle').addEventListener('click',()=>{const side=$('#sidebar');const collapsed=side.classList.toggle('collapsed');$('#mobileToggle').setAttribute('aria-expanded',String(!collapsed));});
+// Close only on a deliberate, short press on the backdrop itself.
+// A selection drag that begins inside an input/textarea may end on the backdrop;
+// that gesture must NEVER dismiss the account creation dialog.
+function closeOnBackdropTap(selector,onClose){
+ const overlay=$(selector);
+ let origin=null;
+ overlay.addEventListener('pointerdown',ev=>{
+  origin=(ev.target===overlay && ev.button===0)?{id:ev.pointerId,x:ev.clientX,y:ev.clientY}:null;
+ });
+ overlay.addEventListener('pointerup',ev=>{
+  const shouldClose=origin!==null&&origin.id===ev.pointerId&&ev.target===overlay&&
+   Math.hypot(ev.clientX-origin.x,ev.clientY-origin.y)<=8;
+  origin=null;
+  if(shouldClose)onClose();
+ });
+ overlay.addEventListener('pointercancel',()=>{origin=null;});
+}
+$('#cancelNew').addEventListener('click',closeModal);
+$('#cancelAccount').addEventListener('click',closeAccountModal);
+closeOnBackdropTap('#newOverlay',closeModal);
+closeOnBackdropTap('#accountOverlay',closeAccountModal);document.addEventListener('keydown',ev=>{if(ev.key==='Escape'){closeModal();closeAccountModal();}});$('#mobileToggle').addEventListener('click',()=>{const side=$('#sidebar');const collapsed=side.classList.toggle('collapsed');$('#mobileToggle').setAttribute('aria-expanded',String(!collapsed));});
 $('#importFile').addEventListener('change',async(ev)=>{const file=ev.target.files[0];if(!file)return;try{if(file.size>10*1024*1024)throw Error('파일이 너무 큽니다.');const data=JSON.parse(await file.text());if(data.app!=='cutroom-reels'||!Array.isArray(data.projects)||data.projects.length>500)throw Error('컷룸 백업 파일이 아닙니다.');if(!data.projects.length&&(!Array.isArray(data.accounts)||!data.accounts.length))throw Error('복원할 내용이 없습니다.');if(state.projects.length+data.projects.length>500)throw Error('프로젝트는 최대 500개까지 복원할 수 있습니다.');const accountMap=new Map();if(Array.isArray(data.accounts)&&data.accounts.length){if(data.accounts.length+state.accounts.length>80)throw Error('계정은 최대 80개까지 복원할 수 있습니다.');for(const old of data.accounts){const a=normalizeAccount(old);if(!accountMap.has(a.id)){const match=state.accounts.find(x=>x.id===a.id);if(!match){state.accounts.push(a);accountMap.set(old.id,a.id);}else{accountMap.set(old.id,match.id);}}}}else{const acc=newAccount('이전 백업 기록');state.accounts.push(acc);accountMap.set('legacy',acc.id);}const existingIds=new Set(state.projects.map(p=>p.id));const imported=data.projects.map(raw=>{const p=normalize(raw);if(existingIds.has(p.id))p.id=id();existingIds.add(p.id);p.accountId=accountMap.get(raw.accountId)||accountMap.get('legacy')||state.accounts[0].id;return p;});state.projects.unshift(...imported);state.activeAccountId=imported[0]?.accountId||state.accounts[state.accounts.length-1].id;state.activeId=imported[0]?.id||null;repairState();openStep='topic';search='';$('#historySearch').value='';render();showToast(`계정과 영상 기록을 복원했습니다. (영상 ${imported.length}개)`);}catch(e){showToast('가져오기 실패: '+e.message);}finally{ev.target.value='';}});
 
 
