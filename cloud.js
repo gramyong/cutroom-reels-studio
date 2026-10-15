@@ -18,7 +18,7 @@ auth.hidden = true;
 auth.innerHTML = '<div class="cloud-auth-card"><div class="cloud-auth-mark">c.</div><div class="cloud-auth-kicker">CUTROOM STUDIO</div><h1>나만의 콘텐츠 작업실</h1><p>구글 계정으로 로그인하면 모든 기기에서<br>영상 기획서와 체크리스트를 이어서 작성할 수 있어요.</p><button id="cloudGoogleLogin" type="button">G &nbsp; Google 계정으로 시작하기</button><p class="cloud-auth-sub" id="cloudAuthHint">로그인한 사용자만 자신의 기록을 볼 수 있습니다.</p></div>';
 document.body.append(auth);
 const $ = id => document.getElementById(id);
-let client = null, user = null, synced = null, saving = false, pending = false, timer = null, poll = null, busy = false, legacy = bridge.snapshot();
+let client = null, user = null, synced = null, saving = false, pending = false, timer = null, poll = null, busy = false, activationId = 0, legacy = bridge.snapshot();
 const json = o => JSON.stringify(o || null);
 const copy = o => JSON.parse(JSON.stringify(o));
 const empty = () => ({accounts:[],projects:[],activeAccountId:null,activeId:null});
@@ -135,6 +135,7 @@ async function refresh() {
  } catch(e) { writeStatus('☁ 새 기록 확인 실패 · 네트워크 확인'); }
 }
 async function activate(session) {
+ const ticket=++activationId;
  const u=session?.user;
  if(!u) {
   clearTimeout(timer);clearInterval(poll);user=null;synced=null;pending=false;
@@ -145,6 +146,7 @@ async function activate(session) {
  busy=true;
  try {
   const remote=await fetchRemote();
+  if(ticket!==activationId)return;
   const localCache=loadJson(cacheKey(u.id));
   const baseline=loadJson(baseKey(u.id));
   const merged=localCache && baseline ? mergeStates(remote,localCache,baseline) : remote;
@@ -153,6 +155,7 @@ async function activate(session) {
   writeStatus('☁ 동기화 연결됨 · ' + (u.email||'Google 로그인'));updateControls();
   if(changedCollection(merged.accounts,remote.accounts)||changedCollection(merged.projects,remote.projects)) setTimeout(scheduleSave,80);
  } catch(e) {
+  if(ticket!==activationId)return;
   const localCache=loadJson(cacheKey(u.id));
   if(localCache){bridge.restore(localCache);setLock(false);writeStatus('☁ 오프라인 기록 표시 중 · 서버 연결을 확인하세요');}
   else {setLock(true);$('cloudAuthHint').textContent='DB 연결 실패: '+String(e.message||e)+' · SQL 테이블과 RLS 설정을 확인하세요.';}
