@@ -17,6 +17,22 @@ When creating or renaming a video, choose a pillar and optionally choose one of 
 
 **Existing accounts and cloud records:** Previous account/project JSON remains readable; missing strategy fields are initialized as an incomplete draft. Open Account Settings to fill out the new strategy. No schema migration is required because the user-owned data uses JSONB and RLS remains enforced. Previous tone/tagline UI inputs were removed.
 
+## V-A-L-S-A account operation strategy
+
+Content pillars determine **what** an account talks about; V-A-L-S-A determines **which side of the creator** each video reveals. Its goal is to show a multidimensional person and build loyal followers, rather than using every tactic in every post.
+
+- **V — Viral (바이럴):** quickly benchmark a currently popular format. Example: weave a trending dance format into a video.
+- **A — Authority (권위 부여):** establish trust through lived experience or expertise. Example: a family member with 50 years' experience selling makgeolli.
+- **L — Lifestyle (라이프 스타일):** share parts of everyday life to become relatable.
+- **S — Storytelling (스토리텔링):** tell a personal journey, such as leaving an office job to care for rescued dogs.
+- **A — Value (가치):** leave an actionable, beneficial one-line takeaway.
+
+The V-A-L-S-A board sits **under the four-step account design** and before the video editing workspace. It shows per-element counts and five-facet coverage across this account's videos. A fold-out guide presents goals and practical examples.
+
+In the video's **주제 선정** stage, select any VALSA facets relevant to that particular video (multiple choice) and type an implementation note. These selections update the board and account history instantly, are preserved by JSON backups and per-user Supabase JSONB storage, and appear in the live brief and all export formats.
+
+The V-A-L-S-A coverage number is a descriptive count, **not a performance score** and not a requirement to force every facet into each video. Older videos with no saved VALSA selection remain compatible.
+
 ## Implemented
 - Google OAuth via Supabase Auth (PKCE).
 - Cloud accounts and video briefs saved per user, with Supabase PostgreSQL RLS.
