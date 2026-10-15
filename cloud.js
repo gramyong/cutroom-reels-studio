@@ -42,6 +42,7 @@ function updateControls() {
  $('cloudLogout').hidden = !user;
 }
 function changes(a,b) { return json(a) !== json(b); }
+function changedCollection(a,b){ const aa=rowsById(a),bb=rowsById(b);if(aa.size!==bb.size)return true;for(const [key,val] of aa)if(changes(val,bb.get(key)))return true;return false; }
 function rowsById(arr) { return new Map((arr||[]).map(o=>[o.id,o])); }
 function mergeCollections(remote, local, baseline) {
  const r=rowsById(remote), l=rowsById(local), b=rowsById(baseline), result=[];
@@ -116,7 +117,7 @@ function scheduleSave() {
  if (!user || busy) return;
  saveCache();
  if (!synced) return;
- if (!changes(bridge.snapshot().accounts,synced.accounts) && !changes(bridge.snapshot().projects,synced.projects)) return;
+ if (!changedCollection(bridge.snapshot().accounts,synced.accounts) && !changedCollection(bridge.snapshot().projects,synced.projects)) return;
  pending=true; writeStatus('☁ 저장 중…');
  clearTimeout(timer);timer=setTimeout(syncOnce,950);
 }
@@ -127,10 +128,10 @@ async function refresh() {
   const local=bridge.snapshot();
   const merged=mergeStates(remote,local,synced);
   synced=remote;saveBaseline();
-  if (changes(local.accounts,merged.accounts)||changes(local.projects,merged.projects)) {
+  if (changedCollection(local.accounts,merged.accounts)||changedCollection(local.projects,merged.projects)) {
    busy=true;bridge.restore(merged);busy=false;
   }
-  if(changes(merged.accounts,remote.accounts)||changes(merged.projects,remote.projects)) scheduleSave();
+  if(changedCollection(merged.accounts,remote.accounts)||changedCollection(merged.projects,remote.projects)) scheduleSave();
  } catch(e) { writeStatus('☁ 새 기록 확인 실패 · 네트워크 확인'); }
 }
 async function activate(session) {
@@ -150,7 +151,7 @@ async function activate(session) {
   synced=remote;saveBaseline();
   bridge.restore(merged);setLock(false);
   writeStatus('☁ 동기화 연결됨 · ' + (u.email||'Google 로그인'));updateControls();
-  if(changes(merged.accounts,remote.accounts)||changes(merged.projects,remote.projects)) setTimeout(scheduleSave,80);
+  if(changedCollection(merged.accounts,remote.accounts)||changedCollection(merged.projects,remote.projects)) setTimeout(scheduleSave,80);
  } catch(e) {
   const localCache=loadJson(cacheKey(u.id));
   if(localCache){bridge.restore(localCache);setLock(false);writeStatus('☁ 오프라인 기록 표시 중 · 서버 연결을 확인하세요');}
