@@ -830,11 +830,11 @@ function openAccountModal(mode='add'){
 }
 function closeAccountModal(){$('#accountOverlay').hidden=true;}
 function downloadText(name,content,type){const blob=new Blob([content],{type:type||'text/plain;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);}const safeName=t=>t.replace(/[\\/:*?"<>|]/g,'_').slice(0,60)||'영상기획';
-function mdExport(p){const a=state.accounts.find(x=>x.id===p.accountId)||currentAccount();const lines=[`# ${p.title}`,``,`- 계정: ${a.name}${a.handle?' (@'+a.handle+')':''}`,`- 계정 테마: ${a.topic||'-'}`,`- 계정 타깃: ${a.audience||'-'}`,`- 카테고리: ${p.category||'-'}`,`- 핵심 메시지: ${a.strategy?.message||'-'}`,`- 콘텐츠 기둥: ${a.strategy?.pillars?.find(x=>x.id===p.pillarId)?.name||'-'}`,`- 선택한 주제: ${p.strategyTopic||'-'}`,`- 작성일: ${fmtDate(p.createdAt)}`,`- 수정일: ${fmtDate(p.updatedAt)}`,`- 점검 진행률: **${pct(p)}% (${count(p)}/${TOTAL})**`,``,`---`,`
+function mdExport(p){const a=state.accounts.find(x=>x.id===p.accountId)||currentAccount();const lines=[`# ${p.title}`,``,`- 계정: ${a.name}${a.handle?' (@'+a.handle+')':''}`,`- 계정 테마: ${a.topic||'-'}`,`- 계정 타깃: ${a.audience||'-'}`,`- 카테고리: ${p.category||'-'}`,`- 핵심 메시지: ${a.strategy?.message||'-'}`,`- 콘텐츠 기둥: ${a.strategy?.pillars?.find(x=>x.id===p.pillarId)?.name||'-'}`,`- 선택한 주제: ${p.strategyTopic||'-'}`,`- V-A-L-S-A: ${valSaSummary(p)||'미지정'}`,`- 작성일: ${fmtDate(p.createdAt)}`,`- 수정일: ${fmtDate(p.updatedAt)}`,`- 점검 진행률: **${pct(p)}% (${count(p)}/${TOTAL})**`,``,`---`,`
 `];const fieldsByStep={topic:[['mainTopic','영상 주제'],['audience','타깃'],['pain','해결할 고민']],hook:[['hookVisual','영상 후킹'],['hookCopy','카피 후킹'],['hookAudio','오디오 후킹'],['hookScene','상황 연출']],script:[['structure','기본 구조'],['keyMessage','핵심 한 문장'],['scriptText','대본']],video:[['shotlist','촬영 컷'],['visualNote','편집 메모']],audio:[['voicePlan','내레이션'],['musicPlan','음악/효과음']],text:[['overlayText','자막 내용'],['fontPlan','자막 위치·폰트']],finish:[['caption','게시글'],['cta','CTA'],['releaseDate','게시일'],['memo','회고/성과']]};for(const s of STEPS){lines.push(`## ${s.icon} ${s.title}`,'');for(const [k,t]of fieldsByStep[s.id]||[]){if(p.fields[k])lines.push(`### ${t}`,'',p.fields[k],'');}if(s.id==='topic')lines.push(`관심 요소: ${(p.chips.motives||[]).join(', ')||'-'}`,'');if(s.id==='hook')lines.push(`후킹 기법: ${(p.chips.hooks||[]).join(', ')||'-'}`,'');if(s.id==='benchmark')p.refs.forEach((r,i)=>{if(r.url||r.point||r.views)lines.push(`### ${REF_TYPES[i][0]}`,'',`- 원본: ${r.url||'-'}`,`- 조회수: ${r.views||'-'}`,`- 적용할 포인트: ${r.point||'-'}`,'');});lines.push('### 체크리스트','');s.items.forEach(([k,t])=>lines.push(`- [${p.checks[k]?'x':' '}] ${t}`));lines.push('');}return lines.join('\n');}
 // One shared report model powers both the live document and all export formats.
 const REPORT_FIELDS={
- topic:[['mainTopic','영상 핵심 주제'],['audience','타깃 시청자'],['pain','해결할 고민 · 기대 결과']],
+ topic:[['mainTopic','영상 핵심 주제'],['audience','타깃 시청자'],['pain','해결할 고민 · 기대 결과'],['valsaNote','V-A-L-S-A 활용 아이디어']],
  hook:[['hookVisual','첫 3초 · 영상'],['hookCopy','첫 3초 · 카피'],['hookAudio','첫 3초 · 오디오'],['hookScene','첫 3초 · 상황 연출']],
  script:[['structure','내용 전개 구조'],['keyMessage','남길 핵심 문장'],['scriptText','전체 대본']],
  video:[['shotlist','촬영 컷 리스트'],['visualNote','영상 · 편집 메모']],
@@ -849,6 +849,7 @@ function reportModel(p){
   sections:STEPS.map(s=>({step:s,done:stageCount(p,s),fields:(REPORT_FIELDS[s.id]||[]).map(([key,label])=>({key,label,value:clean(p.fields[key]||'')})),
    refs:s.id==='benchmark'?p.refs.map((r,i)=>({title:REF_TYPES[i][0],url:clean(r.url),views:clean(r.views),point:clean(r.point)})):[],
    chips:s.id==='topic'?(p.chips.motives||[]):s.id==='hook'?(p.chips.hooks||[]):[],
+   valsa:s.id==='topic'?valSaSelected(p).map(v=>v.letter+' · '+v.name+' ('+v.en+')'):[],
    checks:s.items.map(([key,label])=>({key,label,done:!!p.checks[key]}))}))};
 }
 function reportMarkup(data){
@@ -863,10 +864,11 @@ function reportMarkup(data){
  <strong>기둥의 선택 주제</strong> &nbsp;${esc(p.strategyTopic||'미지정')}<br>
  <strong>작성일</strong> &nbsp;${fmtDate(p.createdAt)} &nbsp;·&nbsp; <strong>수정일</strong> &nbsp;${fmtDate(p.updatedAt)}</div>
  <div class="report-pct-track"><span style="width:${data.percent}%"></span></div><div class="report-stat"><span>전체 제작 체크 현황</span><strong>${data.percent}% &nbsp;·&nbsp; ${data.completed} / ${data.total}개</strong></div></header>
- ${data.sections.map(({step,done,fields,refs,chips,checks})=>`<section class="report-section" data-report-step="${step.id}">
+ ${data.sections.map(({step,done,fields,refs,chips,valsa,checks})=>`<section class="report-section" data-report-step="${step.id}">
  <div class="report-section-title"><span class="report-no">${step.icon}</span><h3>${esc(step.title)}</h3><small>${done} / ${checks.length} 완료</small></div>
  ${fields.length?fields.map(({label,value})=>`<div class="report-field"><div class="report-field-label">${esc(label)}</div><div class="report-field-value ${value?'':'is-empty'}">${value?esc(value):'아직 작성하지 않음'}</div></div>`).join(''):''}
  ${chips.length?`<div class="report-pill-line">${chips.map(v=>`<span class="report-pill">${esc(v)}</span>`).join('')}</div>`:''}
+ ${valsa.length?`<div class="report-field"><div class="report-field-label">V-A-L-S-A · 이 영상에서 보여줄 모습</div><div class="report-pill-line">${valsa.map(v=>`<span class="report-pill">${esc(v)}</span>`).join('')}</div></div>`:''}
  ${refs.length?refs.map(r=>`<div class="report-ref"><h4>${esc(r.title)}</h4><div class="report-field"><div class="report-field-label">영상 · 링크</div><div class="report-field-value ${r.url?'':'is-empty'}">${r.url?esc(r.url):'미기입'}</div></div><div class="report-field"><div class="report-field-label">조회수 · 참고 포인트</div><div class="report-field-value ${r.views||r.point?'':'is-empty'}">${r.views?esc(r.views)+' · ':''}${r.point?esc(r.point):(!r.views?'아직 작성하지 않음':'')}</div></div></div>`).join(''):''}
  <div class="report-list-title">CHECKLIST &nbsp; ${done}/${checks.length}</div><div class="report-checklist">${checks.map(c=>`<div class="report-item ${c.done?'done':''}"><span class="mark">✓</span><span>${esc(c.label)}</span></div>`).join('')}</div>
  </section>`).join('')}<div class="report-footer">CUTROOM STUDIO &nbsp; · &nbsp; MADE WITH INTENTION</div>`;
@@ -891,11 +893,13 @@ function reportMarkdown(p){
  lines.push(`- **핵심 메시지:** ${a.strategy?.message||'미설정'}`);
  lines.push(`- **콘텐츠 기둥:** ${a.strategy?.pillars?.find(x=>x.id===p.pillarId)?.name||'미지정'}`);
  lines.push(`- **선택한 주제:** ${p.strategyTopic||'미지정'}`);
+ lines.push(`- **V-A-L-S-A 요소:** ${valSaSummary(p)||'미지정'}`);
  lines.push(`- **작성일:** ${fmtDate(p.createdAt)}`,`- **최근 수정:** ${fmtDate(p.updatedAt)}`,`- **점검 진행률:** ${d.percent}% (${d.completed}/${d.total})`,'','---','');
  for(const sec of d.sections){
   lines.push(`## ${sec.step.icon}. ${sec.step.title}`,'');
   for(const f of sec.fields)if(f.value.trim())lines.push(`### ${f.label}`,'',f.value,'');
   if(sec.chips.length)lines.push('**선택한 요소:** '+sec.chips.join(' · '),'');
+  if(sec.valsa.length)lines.push('**V-A-L-S-A 운영 요소:** '+sec.valsa.join(' · '),'');
   if(sec.refs.length)for(const r of sec.refs)if(r.url||r.views||r.point)lines.push(`### ${r.title}`,'',`- 참고 영상: ${r.url||'-'}`,`- 조회수: ${r.views||'-'}`,`- 적용할 포인트: ${r.point||'-'}`,'');
   lines.push(`### 점검표 (${sec.done}/${sec.checks.length})`,'');
   for(const c of sec.checks)lines.push(`- [${c.done?'x':' '}] ${c.label}`);
@@ -945,6 +949,7 @@ function downloadPdfReport(d,filename){
  const relatedPillar=d.account.strategy?.pillars?.find(x=>x.id===d.project.pillarId);
  if(relatedPillar)paragraph(`콘텐츠 기둥  ${relatedPillar.name}`,{size:20,color:'#847588',lineHeight:34});
  if(d.project.strategyTopic)paragraph(`선택한 주제  ${d.project.strategyTopic}`,{size:20,color:'#847588',lineHeight:34});
+ const valSaTitles=valSaSummary(d.project);if(valSaTitles)paragraph(`V-A-L-S-A  ${valSaTitles}`,{size:20,color:'#847588',lineHeight:34});
  paragraph(`작성일 ${fmtDate(d.project.createdAt)}   |   수정일 ${fmtDate(d.project.updatedAt)}`,{size:18,color:'#9a8e96',lineHeight:31,after:12});
  nextIf(84);ctx.fillStyle='#eee9f0';ctx.fillRect(M,y,WIDTH,11);ctx.fillStyle='#baa2c8';ctx.fillRect(M,y,WIDTH*d.percent/100,11);y+=31;
  paragraph(`완성률 ${d.percent}%   ·   체크 완료 ${d.completed} / ${d.total}`,{size:20,weight:700,color:'#795f87',lineHeight:29,after:13});rule(17);
@@ -952,6 +957,7 @@ function downloadPdfReport(d,filename){
   header(`${section.step.icon}. ${section.step.title}`);
   for(const f of section.fields)if(f.value.trim()){label(f.label);value(f.value);}
   if(section.chips.length){label('선택한 요소');value(section.chips.join('  ·  '));}
+  if(section.valsa.length){label('V-A-L-S-A 운영 요소');value(section.valsa.join('  ·  '));}
   for(const r of section.refs)if(r.url||r.views||r.point){nextIf(95);paragraph(r.title,{size:21,weight:700,color:'#7b6587',lineHeight:34,after:2});if(r.url){label('참고 영상');value(r.url);}if(r.views){label('조회수');value(r.views);}if(r.point){label('적용할 포인트');value(r.point);}}
   nextIf(80);paragraph(`CHECKLIST   ${section.done}/${section.checks.length}`,{size:19,weight:700,color:'#887a88',lineHeight:29,after:12});
   for(const c of section.checks){font(19,400);const rows=wrap(c.label,WIDTH-42),needed=rows.length*29+11;nextIf(needed);
