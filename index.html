@@ -474,6 +474,58 @@ a { color:#78648d; }
 
 
 
+
+/* CONTENT STRATEGY — quiet four-step editorial planner */
+.strategy-board{background:#fffefa;border:1px solid #e8e1df;border-radius:17px;padding:21px 22px;margin-bottom:19px;box-shadow:0 4px 24px #54405c0b}
+.strategy-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
+.strategy-kicker{font-size:10px;letter-spacing:.13em;color:#96869e;font-weight:750}
+.strategy-top h2{font-size:19px;letter-spacing:-.06em;font-weight:780;margin:6px 0 0}
+.strategy-edit{border:1px solid var(--accent-border,#ddd1e5);border-radius:9px;background:var(--accent-soft,#eee7f2);color:var(--accent-ink,#715f82);padding:8px 11px;font-size:11px;font-weight:730;white-space:nowrap}
+.strategy-mission{background:#f8f5f5;border:1px solid #efe8e8;padding:15px 17px;border-radius:11px;margin-bottom:18px}
+.strategy-mission-label{font-size:10px;color:#9d8999;font-weight:750;margin-bottom:8px}
+.strategy-mission p{font-size:14px;line-height:1.85;white-space:pre-wrap;margin:0;letter-spacing:-.035em}
+.strategy-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.strategy-card{border:1px solid #e9e3e3;background:#fcfbf9;border-radius:12px;padding:15px;min-width:0;transition:transform .2s,box-shadow .2s}
+.strategy-card:hover{transform:translateY(-2px);box-shadow:0 5px 15px #6b5b6a10}
+.strategy-card:nth-child(1){background:#f5eff8}.strategy-card:nth-child(2){background:#eef6ef}.strategy-card:nth-child(3){background:#faf0ef}.strategy-card:nth-child(4){background:#fbf5e8}
+.strategy-card-top{display:flex;justify-content:space-between;gap:7px;align-items:center;margin-bottom:9px}
+.strategy-index{font-size:9px;letter-spacing:.1em;color:#94899a;font-weight:800}
+.strategy-ratio{font-size:11px;font-weight:800;color:#64536e}
+.strategy-card h3{font-size:13px;font-weight:750;line-height:1.55;margin:0 0 11px;word-break:keep-all}
+.strategy-card ul{padding:0;list-style:none;margin:0;display:grid;gap:6px}
+.strategy-card li{font-size:10px;color:#736b75;line-height:1.6;display:flex;gap:5px}
+.strategy-card li:before{content:"·";color:#a999b1}
+.strategy-qty{display:flex;align-items:center;justify-content:space-between;font-size:10px;color:#8d818d;margin-top:14px}
+.strategy-meter{height:4px;border-radius:10px;background:#e9e4e8;overflow:hidden;margin-top:6px}
+.strategy-meter span{display:block;height:100%;border-radius:10px;background:#ab97b7;transition:width .45s}
+.strategy-empty{padding:22px;border:1px dashed #d8cddc;background:#faf8fb;border-radius:12px;color:#82768a;font-size:12px;line-height:1.9}
+.strategy-empty p{margin:3px 0 13px}
+.strategy-guide{font-size:11px;color:#9b919b;line-height:1.7;margin-top:13px}
+.account-modal .modal{width:min(800px,100%);max-height:min(92vh,920px);padding:30px}
+.account-modal .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.strategy-form-step{padding:17px 0 15px;border-top:1px solid #eee8e7;margin-top:7px}
+.strategy-form-step h3{font-size:14px;margin:0 0 6px;font-weight:760;display:flex;align-items:center;gap:9px}
+.strategy-form-step h3 span{background:#eee6f3;color:#836e93;border-radius:7px;padding:4px 7px;font-size:10px}
+.strategy-form-help{font-size:11px;color:#998f98;line-height:1.75;margin:0 0 12px}
+.strategy-form-step textarea{width:100%;min-height:70px;background:#fffefa;border:1px solid #e7dddf;border-radius:10px;padding:11px 12px;font:inherit;resize:vertical;line-height:1.6}
+.strategy-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.pillar-form{padding:13px;border-radius:12px;background:#fbf8fb;border:1px solid #eae1e9;display:grid;gap:9px}
+.pillar-form:nth-child(2){background:#f5faf5;border-color:#e1ebdf}
+.pillar-form:nth-child(3){background:#fff9f7;border-color:#f0e4e2}
+.pillar-form:nth-child(4){background:#fcfaf3;border-color:#eee8d9}
+.pillar-form label{font-size:11px;font-weight:700;color:#776e7a}
+.pillar-form input{width:100%;padding:10px 11px;border:1px solid #e7dfe3;border-radius:9px;background:#fffefd;font:inherit;font-size:12px}
+.pillar-form textarea{min-height:100px;font-size:12px}
+.strategy-count-row{display:grid;grid-template-columns:minmax(0,1fr) 75px 66px;gap:10px;align-items:center;padding:9px 10px;border-bottom:1px solid #ede6e5}
+.strategy-count-row label{font-size:12px;font-weight:700}
+.strategy-count-row input{min-width:0;width:75px;padding:9px 6px;border:1px solid #e3dcdf;border-radius:9px;background:#fffefa;text-align:center}
+.strategy-count-pct{text-align:right;font-size:11px;color:#857788;font-weight:750}
+.strategy-count-total{font-weight:760;margin-top:13px;background:#f4f0f6;border:1px solid #e9dfe9;padding:11px 13px;border-radius:10px;font-size:12px;color:#776584}
+.strategy-count-total.error{background:#fcf1ef;border-color:#f0d5cf;color:#a16b67}
+.strategy-account-note{font-size:11px;color:#998a92;margin-top:11px;line-height:1.7}
+@media(max-width:1230px){.strategy-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.strategy-board{padding:16px 13px}.strategy-top h2{font-size:16px}.strategy-grid,.strategy-form-grid,.account-modal .form-grid{grid-template-columns:1fr}.account-modal .modal{padding:23px 15px}.strategy-card{padding:12px}.strategy-count-row{grid-template-columns:minmax(0,1fr) 67px 49px;gap:6px}.strategy-count-row input{width:67px}}
+
 /* CLOUD SIGN-IN — understated pastel paper design */
 body.cloud-booting .app-shell,body.cloud-locked .app-shell{display:none!important}
 .cloud-status{position:fixed;right:17px;bottom:17px;z-index:1200;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border:1px solid #dfd7df;background:#fffefaed;backdrop-filter:blur(14px);border-radius:12px;padding:10px 13px;box-shadow:0 7px 24px #52425716;color:#746777;font-size:11px;font-weight:660;max-width:min(95vw,710px);line-height:1.45}
@@ -507,7 +559,28 @@ body.cloud-booting .app-shell,body.cloud-locked .app-shell{display:none!importan
  <main class="main" id="workspace" aria-live="off"></main>
 </div>
 <div class="overlay" id="newOverlay" hidden><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><h2 id="modalTitle">새 영상 기획 ✦</h2><p id="modalDesc">영상 하나당 하나의 기획 프로젝트를 만들어요. 진행률과 체크 기록은 자동으로 남습니다.</p><form id="newForm"><div class="field"><label for="newName">영상 제목</label><input id="newName" maxlength="120" required placeholder="예: 체형별 드레스 고르는 법"></div><div class="field"><label for="newAccountSelect">영상 소속 계정</label><select id="newAccountSelect" required></select></div><div class="field"><label for="newCategory">콘텐츠 카테고리</label><input id="newCategory" maxlength="80" placeholder="예: 뷰티 / 패션 / 정보 / 일상"></div><div class="modal-actions"><button type="button" class="cancel" id="cancelNew">취소</button><button type="submit" class="create">프로젝트 만들기 →</button></div></form></div></div>
-<div class="overlay account-modal" id="accountOverlay" hidden><div class="modal" role="dialog" aria-modal="true" aria-labelledby="accountModalTitle"><h2 id="accountModalTitle">계정 추가</h2><p id="accountModalDesc">계정마다 콘텐츠 성격과 영상 기록을 따로 관리할 수 있습니다.</p><form id="accountForm"><div class="form-grid"><div class="field"><label for="accountName">계정 이름 *</label><input id="accountName" maxlength="70" placeholder="예: 웨딩 인사이트" required></div><div class="field"><label for="accountHandleInput">인스타그램 아이디 (선택)</label><input id="accountHandleInput" maxlength="70" placeholder="예: bridal.tips (로그인 연동 아님)"></div><div class="field"><label for="accountTopic">콘텐츠 테마 / 분야</label><input id="accountTopic" maxlength="80" placeholder="예: 웨딩 · 드레스 분석"></div><div class="field"><label for="accountAudience">주요 타깃 시청자</label><input id="accountAudience" maxlength="160" placeholder="예: 결혼 준비 중인 20~30대"></div><div class="field"><label for="accountTone">콘텐츠 말투 · 분위기</label><input id="accountTone" maxlength="160" placeholder="예: 따뜻하고 전문적인 정보 전달"></div><div class="field"><label for="accountTagline">한 줄 콘셉트</label><input id="accountTagline" maxlength="220" placeholder="예: 어려운 드레스 선택을 쉽게"></div></div><div class="field"><label>계정 구분 컬러</label><div class="palette-options" id="paletteOptions"></div></div><div class="account-note">실제 인스타그램에 로그인하거나 연결하는 기능은 아닙니다. 여러 계정의 영상 기획과 기록을 앱 안에서 분리하기 위한 설정입니다.</div><div class="modal-actions"><button type="button" class="account-delete" id="deleteAccount" hidden>계정 삭제</button><button type="button" class="cancel" id="cancelAccount">취소</button><button type="submit" class="create" id="saveAccount">계정 저장 →</button></div></form></div></div>
+<div class="overlay account-modal" id="accountOverlay" hidden><div class="modal" role="dialog" aria-modal="true" aria-labelledby="accountModalTitle">
+ <h2 id="accountModalTitle">새 계정 설계</h2><p id="accountModalDesc">내 계정이 전달할 가치를 정하고, 콘텐츠 방향을 네 단계로 설계합니다.</p>
+ <form id="accountForm">
+  <div class="form-grid"><div class="field"><label for="accountName">계정 이름 *</label><input id="accountName" maxlength="70" placeholder="예: 살림 노트" required></div>
+   <div class="field"><label for="accountHandleInput">인스타그램 ID (선택)</label><input id="accountHandleInput" maxlength="70" placeholder="예: my.home.note"></div>
+   <div class="field"><label for="accountTopic">카테고리 / 분야</label><input id="accountTopic" maxlength="80" placeholder="예: 살림 · 라이프스타일"></div>
+   <div class="field"><label for="accountAudience">핵심 타깃</label><input id="accountAudience" maxlength="160" placeholder="예: 집을 아늑하게 꾸미고 싶은 주부"></div></div>
+  <div class="field"><label>계정 구분 컬러</label><div class="palette-options" id="paletteOptions"></div></div>
+  <section class="strategy-form-step"><h3><span>STEP 01</span> 세상에 전하고 싶은 메시지</h3>
+   <p class="strategy-form-help">이 계정으로 누구에게 어떤 가치를 전하고 싶나요? 예: 주부들에게 집이 가족들에게 가장 따뜻한 공간이 되어야 한다는 가치 전달</p>
+   <textarea id="strategyMessage" maxlength="1200" required placeholder="내 콘텐츠가 사람들에게 남기고 싶은 메시지를 적어주세요."></textarea></section>
+  <section class="strategy-form-step"><h3><span>STEP 02 · 03</span> 콘텐츠 기둥 4개와 기둥별 주제</h3>
+   <p class="strategy-form-help">메시지를 기준으로 4개의 콘텐츠 기둥을 세우고, 각 기둥에서 제작할 영상 주제를 한 줄에 하나씩 적어주세요.</p>
+   <div class="strategy-form-grid"><div class="pillar-form"><label for="strategyPillar0">콘텐츠 기둥 1 *</label><input id="strategyPillar0" maxlength="100" required placeholder="예: 릴스 실전 노하우"><label for="strategyTopics0">콘텐츠 주제 · 줄바꿈으로 구분 *</label><textarea id="strategyTopics0" maxlength="2400" required placeholder="주제 1: ...&#10;주제 2: ...&#10;주제 3: ..."></textarea></div><div class="pillar-form"><label for="strategyPillar1">콘텐츠 기둥 2 *</label><input id="strategyPillar1" maxlength="100" required placeholder="예: 마인드 & 동기부여"><label for="strategyTopics1">콘텐츠 주제 · 줄바꿈으로 구분 *</label><textarea id="strategyTopics1" maxlength="2400" required placeholder="주제 1: ...&#10;주제 2: ...&#10;주제 3: ..."></textarea></div><div class="pillar-form"><label for="strategyPillar2">콘텐츠 기둥 3 *</label><input id="strategyPillar2" maxlength="100" required placeholder="예: 크리에이터 기술"><label for="strategyTopics2">콘텐츠 주제 · 줄바꿈으로 구분 *</label><textarea id="strategyTopics2" maxlength="2400" required placeholder="주제 1: ...&#10;주제 2: ...&#10;주제 3: ..."></textarea></div><div class="pillar-form"><label for="strategyPillar3">콘텐츠 기둥 4 *</label><input id="strategyPillar3" maxlength="100" required placeholder="예: 크리에이터 비즈니스"><label for="strategyTopics3">콘텐츠 주제 · 줄바꿈으로 구분 *</label><textarea id="strategyTopics3" maxlength="2400" required placeholder="주제 1: ...&#10;주제 2: ...&#10;주제 3: ..."></textarea></div></div></section>
+  <section class="strategy-form-step"><h3><span>STEP 04</span> 콘텐츠 제작 비율</h3>
+   <p class="strategy-form-help">제작 목표 개수를 정하고 네 기둥에 배분해 주세요. 예: 8개 제작 → 4개 / 2개 / 1개 / 1개</p>
+   <div class="field" style="max-width:230px"><label for="strategyTarget">기간별 영상 제작 목표(개) *</label><input id="strategyTarget" type="number" min="4" max="300" value="8" required></div>
+   <div id="strategyCountRows"><div class="strategy-count-row"><label id="strategyCountLabel0" for="strategyCount0">기둥 1</label><input id="strategyCount0" type="number" min="0" max="300" value="4" required><span class="strategy-count-pct" id="strategyCountPct0">—</span></div><div class="strategy-count-row"><label id="strategyCountLabel1" for="strategyCount1">기둥 2</label><input id="strategyCount1" type="number" min="0" max="300" value="2" required><span class="strategy-count-pct" id="strategyCountPct1">—</span></div><div class="strategy-count-row"><label id="strategyCountLabel2" for="strategyCount2">기둥 3</label><input id="strategyCount2" type="number" min="0" max="300" value="1" required><span class="strategy-count-pct" id="strategyCountPct2">—</span></div><div class="strategy-count-row"><label id="strategyCountLabel3" for="strategyCount3">기둥 4</label><input id="strategyCount3" type="number" min="0" max="300" value="1" required><span class="strategy-count-pct" id="strategyCountPct3">—</span></div></div>
+   <div id="strategyCountTotal" class="strategy-count-total" aria-live="polite">배분 합계 8개 / 목표 8개</div></section>
+  <div class="strategy-account-note">이 계정 설계는 계정을 생성한 뒤에도 상단에서 항상 확인하고 수정할 수 있습니다.</div>
+  <div class="modal-actions"><button type="button" class="account-delete" id="deleteAccount" hidden>계정 삭제</button><button type="button" class="cancel" id="cancelAccount">취소</button><button type="submit" class="create" id="saveAccount">계정과 전략 저장하기 →</button></div>
+ </form></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div><div class="celebration" id="confettiLayer" aria-hidden="true"></div>
 <script>
 (()=>{'use strict';
@@ -540,10 +613,23 @@ const clean=(s,max=12000)=>String(s??'').slice(0,max);
 const esc=s=>clean(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmtDate=d=>{try{return new Intl.DateTimeFormat('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(d));}catch{return '-';}};
 const id=()=> (crypto?.randomUUID?.() || ('v'+Date.now()+'_'+Math.random().toString(36).slice(2)));
-const newAccount=(name='내 첫 계정')=>({id:id(),name:clean(name,70),handle:'',topic:'',audience:'',tone:'',tagline:'',palette:'lavender',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});
-function normalizeAccount(a){const x=newAccount(clean(a?.name,70)||'이름 없는 계정');x.id=clean(a?.id,200)||x.id;x.handle=clean(a?.handle,70).replace(/^@/,'');x.topic=clean(a?.topic,80);x.audience=clean(a?.audience,160);x.tone=clean(a?.tone,160);x.tagline=clean(a?.tagline,220);x.palette=Object.hasOwn(PALETTES,a?.palette)?a.palette:'lavender';x.createdAt=isFinite(Date.parse(a?.createdAt))?a.createdAt:x.createdAt;x.updatedAt=isFinite(Date.parse(a?.updatedAt))?a.updatedAt:x.createdAt;return x;}
-const newProject=(title='첫 번째 영상 기획',category='',accountId='')=>({id:id(),accountId, title:clean(title,120),category:clean(category,80),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),checks:{},fields:{},chips:{},refs:[{url:'',views:'',point:''},{url:'',views:'',point:''},{url:'',views:'',point:''}]});
-function normalize(p){const q=newProject(clean(p?.title,120)||'이름 없는 기획',clean(p?.category,80),clean(p?.accountId,200));q.id=clean(p?.id,200)||q.id;q.createdAt=isFinite(Date.parse(p?.createdAt))?p.createdAt:q.createdAt;q.updatedAt=isFinite(Date.parse(p?.updatedAt))?p.updatedAt:q.updatedAt;q.checks={};q.fields={};q.chips={};for(const s of STEPS)for(const [k]of s.items){if(p?.checks?.[k]===true)q.checks[k]=true;}for(const [k,v]of Object.entries(p?.fields||{}).slice(0,80))q.fields[clean(k,90)]=clean(v);for(const [k,v]of Object.entries(p?.chips||{}).slice(0,30)){if(Array.isArray(v))q.chips[clean(k,90)]=v.map(x=>clean(x,80)).slice(0,30);}q.refs=[0,1,2].map(i=>({url:clean(p?.refs?.[i]?.url,1500),views:clean(p?.refs?.[i]?.views,70),point:clean(p?.refs?.[i]?.point,4000)}));return q;}
+const newStrategy=()=>({message:'',targetCount:8,pillars:[4,2,1,1].map((count,i)=>({id:'pillar_'+(i+1),name:'',topics:[],count}))});
+function normalizeStrategy(raw){
+ const sample=newStrategy();
+ if(!raw||typeof raw!=='object')return sample;
+ sample.message=clean(raw.message,1200);
+ sample.targetCount=Math.max(4,Math.min(300,Number.parseInt(raw.targetCount,10)||8));
+ sample.pillars=sample.pillars.map((p,i)=>{
+  const o=Array.isArray(raw.pillars)?raw.pillars[i]:null;
+  return {id:p.id,name:clean(o?.name,100),topics:(Array.isArray(o?.topics)?o.topics:[]).map(t=>clean(t,180).trim()).filter(Boolean).slice(0,18),count:Math.max(0,Math.min(300,Number.parseInt(o?.count,10)||0))};
+ });
+ return sample;
+}
+const strategyReady=a=>!!(a.strategy?.message?.trim()&&a.strategy.pillars?.length===4&&a.strategy.pillars.every(p=>p.name.trim()&&p.topics.length>0)&&a.strategy.pillars.reduce((n,p)=>n+p.count,0)===a.strategy.targetCount);
+const newAccount=(name='내 첫 계정')=>({id:id(),name:clean(name,70),handle:'',topic:'',audience:'',palette:'lavender',strategy:newStrategy(),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});
+function normalizeAccount(a){const x=newAccount(clean(a?.name,70)||'이름 없는 계정');x.id=clean(a?.id,200)||x.id;x.handle=clean(a?.handle,70).replace(/^@/,'');x.topic=clean(a?.topic,80);x.audience=clean(a?.audience,160);x.strategy=normalizeStrategy(a?.strategy);x.palette=Object.hasOwn(PALETTES,a?.palette)?a.palette:'lavender';x.createdAt=isFinite(Date.parse(a?.createdAt))?a.createdAt:x.createdAt;x.updatedAt=isFinite(Date.parse(a?.updatedAt))?a.updatedAt:x.createdAt;return x;}
+const newProject=(title='첫 번째 영상 기획',category='',accountId='')=>({id:id(),accountId,title:clean(title,120),category:clean(category,80),pillarId:'',strategyTopic:'',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),checks:{},fields:{},chips:{},refs:[{url:'',views:'',point:''},{url:'',views:'',point:''},{url:'',views:'',point:''}]});
+function normalize(p){const q=newProject(clean(p?.title,120)||'이름 없는 기획',clean(p?.category,80),clean(p?.accountId,200));q.id=clean(p?.id,200)||q.id;q.pillarId=clean(p?.pillarId,50);q.strategyTopic=clean(p?.strategyTopic,180);q.createdAt=isFinite(Date.parse(p?.createdAt))?p.createdAt:q.createdAt;q.updatedAt=isFinite(Date.parse(p?.updatedAt))?p.updatedAt:q.updatedAt;q.checks={};q.fields={};q.chips={};for(const s of STEPS)for(const [k]of s.items){if(p?.checks?.[k]===true)q.checks[k]=true;}for(const [k,v]of Object.entries(p?.fields||{}).slice(0,80))q.fields[clean(k,90)]=clean(v);for(const [k,v]of Object.entries(p?.chips||{}).slice(0,30)){if(Array.isArray(v))q.chips[clean(k,90)]=v.map(x=>clean(x,80)).slice(0,30);}q.refs=[0,1,2].map(i=>({url:clean(p?.refs?.[i]?.url,1500),views:clean(p?.refs?.[i]?.views,70),point:clean(p?.refs?.[i]?.point,4000)}));return q;}
 function repairState(){if(!Array.isArray(state.accounts))state.accounts=[];if(!state.accounts.length)state.accounts=[newAccount()];if(!Array.isArray(state.projects))state.projects=[];const accountIds=new Set(state.accounts.map(a=>a.id));for(const p of state.projects)if(!accountIds.has(p.accountId))p.accountId=state.accounts[0].id;if(!accountIds.has(state.activeAccountId))state.activeAccountId=state.accounts[0].id;const visible=state.projects.filter(p=>p.accountId===state.activeAccountId);if(!visible.some(p=>p.id===state.activeId))state.activeId=visible[0]?.id||null;}
 let state;
 try{
