@@ -625,7 +625,7 @@ function normalizeStrategy(raw){
  });
  return sample;
 }
-const strategyReady=a=>!!(a.strategy?.message?.trim()&&a.strategy.pillars?.length===4&&a.strategy.pillars.every(p=>p.name.trim()&&p.topics.length>0)&&a.strategy.pillars.reduce((n,p)=>n+p.count,0)===a.strategy.targetCount);
+const strategyReady=a=>!!(a?.strategy?.message?.trim()&&a.strategy.pillars?.length===4&&a.strategy.pillars.every(p=>p.name.trim()&&p.topics.length>0)&&a.strategy.pillars.reduce((n,p)=>n+p.count,0)===a.strategy.targetCount);
 const newAccount=(name='내 첫 계정')=>({id:id(),name:clean(name,70),handle:'',topic:'',audience:'',palette:'lavender',strategy:newStrategy(),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});
 function normalizeAccount(a){const x=newAccount(clean(a?.name,70)||'이름 없는 계정');x.id=clean(a?.id,200)||x.id;x.handle=clean(a?.handle,70).replace(/^@/,'');x.topic=clean(a?.topic,80);x.audience=clean(a?.audience,160);x.strategy=normalizeStrategy(a?.strategy);x.palette=Object.hasOwn(PALETTES,a?.palette)?a.palette:'lavender';x.createdAt=isFinite(Date.parse(a?.createdAt))?a.createdAt:x.createdAt;x.updatedAt=isFinite(Date.parse(a?.updatedAt))?a.updatedAt:x.createdAt;return x;}
 const newProject=(title='첫 번째 영상 기획',category='',accountId='')=>({id:id(),accountId,title:clean(title,120),category:clean(category,80),pillarId:'',strategyTopic:'',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),checks:{},fields:{},chips:{},refs:[{url:'',views:'',point:''},{url:'',views:'',point:''},{url:'',views:'',point:''}]});
@@ -696,7 +696,67 @@ function refreshProjectStrategyChoices(preservePillar='',preserveTopic=''){
 }
 function openModal(mode='new'){modalMode=mode;const p=current(),a=currentAccount();$('#newOverlay').hidden=false;$('#modalTitle').textContent=mode==='rename'?'영상 기획 정보 수정 ✎':'새 영상 기획 ✦';$('#modalDesc').textContent=mode==='rename'?'영상 제목과 소속 계정을 바꿀 수 있어요. 체크 기록은 그대로 유지됩니다.':'계정에 소속된 영상으로 기록되어, 계정을 전환하면 해당 계정의 영상만 볼 수 있어요.';$('#newName').value=mode==='rename'?(p?.title||''):'';$('#newAccountSelect').innerHTML=state.accounts.map(o=>`<option value="${esc(o.id)}" ${o.id===(mode==='rename'?p?.accountId:a.id)?'selected':''}>${esc(o.name)}</option>`).join('');$('#newCategory').value=mode==='rename'?(p?.category||''):(a.topic||'');refreshProjectStrategyChoices(mode==='rename'?p?.pillarId:'',mode==='rename'?p?.strategyTopic:'');$('#newForm .create').textContent=mode==='rename'?'수정 완료 →':'프로젝트 만들기 →';setTimeout(()=>$('#newName').focus(),40);}
 function closeModal(){$('#newOverlay').hidden=true;}
-function openAccountModal(mode='add'){accountModalMode=mode;const a=currentAccount();$('#accountOverlay').hidden=false;$('#accountModalTitle').textContent=mode==='edit'?'계정 설정 ✎':'새 계정 추가 ✿';$('#accountModalDesc').textContent=mode==='edit'?'계정별 영상 테마와 타깃을 변경해도 기존 영상의 작성 내용은 유지됩니다.':'영상의 방향이 다른 계정을 추가하고, 각 계정의 기획 기록을 따로 관리하세요.';const fields={accountName:'name',accountHandleInput:'handle',accountTopic:'topic',accountAudience:'audience',accountTone:'tone',accountTagline:'tagline'};for(const [el,k]of Object.entries(fields))$('#'+el).value=mode==='edit'?(a[k]||''):'';$('#paletteOptions').innerHTML=Object.entries(PALETTES).map(([key,val])=>`<label class="palette-choice"><input type="radio" name="accountPalette" value="${key}" ${key===(mode==='edit'?a.palette:'lavender')?'checked':''}><span class="palette-dot" style="--dot:${val.dot}"></span>${val.name}</label>`).join('');$('#deleteAccount').hidden=mode!=='edit';$('#saveAccount').textContent=mode==='edit'?'변경사항 저장 →':'계정 추가하기 →';setTimeout(()=>$('#accountName').focus(),40);}
+
+function updateStrategyCountPreview(){
+ const target=Number.parseInt($('#strategyTarget').value,10)||0;
+ let total=0;
+ for(let i=0;i<4;i++){
+  const label=$('#strategyPillar'+i).value.trim()||'기둥 '+(i+1);
+  const count=Number.parseInt($('#strategyCount'+i).value,10)||0;
+  total+=count;
+  $('#strategyCountLabel'+i).textContent=label;
+  $('#strategyCountPct'+i).textContent=target?Math.round(100*count/target)+'%':'—';
+ }
+ const status=$('#strategyCountTotal');
+ const correct=target>=4&&target<=300&&total===target;
+ status.textContent='배분 합계 '+total+'개 / 목표 '+target+'개 · '+(correct?'완료 ✓':'목표 개수와 동일하게 맞춰주세요');
+ status.classList.toggle('error',!correct);
+ return correct;
+}
+function collectStrategyForm(){
+ const message=clean($('#strategyMessage').value.trim(),1200);
+ const target=Number.parseInt($('#strategyTarget').value,10);
+ const pillars=[0,1,2,3].map(i=>{
+  const name=clean($('#strategyPillar'+i).value.trim(),100);
+  const topics=$('#strategyTopics'+i).value.split(/\r?\n/).map(t=>clean(t.trim(),180)).filter(Boolean).slice(0,18);
+  const count=Number.parseInt($('#strategyCount'+i).value,10);
+  return {id:'pillar_'+(i+1),name,topics,count};
+ });
+ if(!message){$('#strategyMessage').focus();return null;}
+ for(let i=0;i<4;i++){
+  if(!pillars[i].name){$('#strategyPillar'+i).focus();return null;}
+  if(!pillars[i].topics.length){$('#strategyTopics'+i).focus();return null;}
+  if(!Number.isInteger(pillars[i].count)||pillars[i].count<0){$('#strategyCount'+i).focus();return null;}
+ }
+ if(!Number.isInteger(target)||!updateStrategyCountPreview()||pillars.reduce((n,p)=>n+p.count,0)!==target){
+  showToast('콘텐츠 제작 목표와 기둥별 배분 합계를 일치시켜 주세요.');
+  $('#strategyCountTotal').scrollIntoView({behavior:'smooth',block:'center'});
+  return null;
+ }
+ return {message,targetCount:target,pillars};
+}
+function openAccountModal(mode='add'){
+ accountModalMode=mode;
+ const a=currentAccount(),strategy=mode==='edit'?normalizeStrategy(a.strategy):newStrategy();
+ $('#accountOverlay').hidden=false;
+ $('#accountModalTitle').textContent=mode==='edit'?'계정 설계 전략 수정 ✎':'새 계정 · 4단계 전략 설계 ✿';
+ $('#accountModalDesc').textContent=mode==='edit'?'계정의 메시지와 콘텐츠 기둥을 다듬어 보세요. 기존 영상 기획 기록은 유지됩니다.':'영상을 만들기 전에 먼저 계정이 전달할 가치와 네 가지 콘텐츠 기둥을 정해요.';
+ const fields={accountName:'name',accountHandleInput:'handle',accountTopic:'topic',accountAudience:'audience'};
+ for(const [el,k] of Object.entries(fields))$('#'+el).value=mode==='edit'?(a[k]||''):'';
+ $('#strategyMessage').value=strategy.message;
+ $('#strategyTarget').value=strategy.targetCount;
+ strategy.pillars.forEach((p,i)=>{
+  $('#strategyPillar'+i).value=p.name;
+  $('#strategyTopics'+i).value=p.topics.join('\n');
+  $('#strategyCount'+i).value=p.count;
+ });
+ $('#paletteOptions').innerHTML=Object.entries(PALETTES).map(([key,val])=>'<label class="palette-choice"><input type="radio" name="accountPalette" value="'+key+'" '+(key===(mode==='edit'?a.palette:'lavender')?'checked':'')+'><span class="palette-dot" style="--dot:'+val.dot+'"></span>'+val.name+'</label>').join('');
+ $('#deleteAccount').hidden=mode!=='edit';
+ $('#saveAccount').textContent=mode==='edit'?'전략 변경사항 저장 →':'계정과 전략 저장하기 →';
+ updateStrategyCountPreview();
+ const modal=$('#accountOverlay .modal');if(modal)modal.scrollTop=0;
+ setTimeout(()=>$('#accountName').focus(),40);
+}
 function closeAccountModal(){$('#accountOverlay').hidden=true;}
 function downloadText(name,content,type){const blob=new Blob([content],{type:type||'text/plain;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);}const safeName=t=>t.replace(/[\\/:*?"<>|]/g,'_').slice(0,60)||'영상기획';
 function mdExport(p){const a=state.accounts.find(x=>x.id===p.accountId)||currentAccount();const lines=[`# ${p.title}`,``,`- 계정: ${a.name}${a.handle?' (@'+a.handle+')':''}`,`- 계정 테마: ${a.topic||'-'}`,`- 계정 타깃: ${a.audience||'-'}`,`- 카테고리: ${p.category||'-'}`,`- 작성일: ${fmtDate(p.createdAt)}`,`- 수정일: ${fmtDate(p.updatedAt)}`,`- 점검 진행률: **${pct(p)}% (${count(p)}/${TOTAL})**`,``,`---`,`
@@ -870,7 +930,25 @@ $('#newPillar').addEventListener('change',()=>refreshProjectStrategyChoices($('#
 $('#newAccountSelect').addEventListener('change',()=>refreshProjectStrategyChoices());
 $('#newStrategyTopic').addEventListener('change',()=>{if($('#newStrategyTopic').value&&!$('#newName').value.trim())$('#newName').value=$('#newStrategyTopic').value;});
 $('#newForm').addEventListener('submit',ev=>{ev.preventDefault();const title=$('#newName').value.trim();const accountId=$('#newAccountSelect').value;if(!title||!state.accounts.some(a=>a.id===accountId))return;if(modalMode==='rename'){const p=current();if(!p)return;p.title=clean(title,120);p.category=clean($('#newCategory').value.trim(),80);p.pillarId=$('#newPillar').value;p.strategyTopic=$('#newStrategyTopic').value;p.accountId=accountId;p.updatedAt=new Date().toISOString();state.activeAccountId=accountId;state.activeId=p.id;persist();closeModal();render();showToast('영상 정보와 소속 계정을 저장했습니다.');}else{const a=state.accounts.find(a=>a.id===accountId),p=newProject(title,$('#newCategory').value.trim()||a.topic,accountId);p.pillarId=$('#newPillar').value;p.strategyTopic=$('#newStrategyTopic').value;if(p.strategyTopic)p.fields.mainTopic=p.strategyTopic;if(a.audience)p.fields.audience=a.audience;state.projects.unshift(p);state.activeAccountId=accountId;state.activeId=p.id;openStep='topic';closeModal();render();showToast(`“${a.name}”에 새 영상 기획을 만들었습니다.`);window.scrollTo({top:0,behavior:'smooth'});}});
-$('#accountForm').addEventListener('submit',ev=>{ev.preventDefault();const name=$('#accountName').value.trim();if(!name)return;const palette=document.querySelector('input[name="accountPalette"]:checked')?.value||'lavender';const values={name:clean(name,70),handle:clean($('#accountHandleInput').value.trim().replace(/^@/,''),70),topic:clean($('#accountTopic').value.trim(),80),audience:clean($('#accountAudience').value.trim(),160),tone:clean($('#accountTone').value.trim(),160),tagline:clean($('#accountTagline').value.trim(),220),palette};if(accountModalMode==='edit'){Object.assign(currentAccount(),values,{updatedAt:new Date().toISOString()});closeAccountModal();render();showToast('계정 테마와 설정을 저장했습니다.');}else{if(state.accounts.length>=80){showToast('계정을 최대 80개까지 만들 수 있어요.');return;}const a={...newAccount(),...values};state.accounts.push(a);state.activeAccountId=a.id;state.activeId=null;openStep='topic';search='';$('#historySearch').value='';closeAccountModal();render();showToast(`“${a.name}” 계정을 추가했습니다.`);}});
+$('#strategyTarget').addEventListener('input',updateStrategyCountPreview);
+for(let i=0;i<4;i++){ $('#strategyPillar'+i).addEventListener('input',updateStrategyCountPreview);$('#strategyCount'+i).addEventListener('input',updateStrategyCountPreview); }
+$('#accountForm').addEventListener('submit',ev=>{
+ ev.preventDefault();
+ const name=$('#accountName').value.trim();if(!name)return;
+ const strategy=collectStrategyForm();if(!strategy)return;
+ const palette=document.querySelector('input[name="accountPalette"]:checked')?.value||'lavender';
+ const values={name:clean(name,70),handle:clean($('#accountHandleInput').value.trim().replace(/^@/,''),70),topic:clean($('#accountTopic').value.trim(),80),audience:clean($('#accountAudience').value.trim(),160),palette,strategy};
+ if(accountModalMode==='edit'){
+  Object.assign(currentAccount(),values,{updatedAt:new Date().toISOString()});
+  closeAccountModal();render();showToast('계정 설계 4단계를 저장했습니다.');
+ }else{
+  if(state.accounts.length>=80){showToast('계정은 최대 80개까지 만들 수 있어요.');return;}
+  const a={...newAccount(),...values};
+  state.accounts.push(a);state.activeAccountId=a.id;state.activeId=null;
+  openStep='topic';search='';$('#historySearch').value='';
+  closeAccountModal();render();showToast('“'+a.name+'”의 콘텐츠 전략이 저장되었습니다.');
+ }
+});
 $('#deleteAccount').addEventListener('click',()=>{if(accountModalMode!=='edit')return;if(state.accounts.length===1){showToast('마지막 계정은 삭제할 수 없어요.');return;}const a=currentAccount(),fallback=state.accounts.find(x=>x.id!==a.id),cnt=inAccount(a.id).length;const msg=cnt?`“${a.name}” 계정을 삭제할까요?\n소속 영상 ${cnt}개는 삭제되지 않고 “${fallback.name}” 계정으로 이동합니다.`:`“${a.name}” 계정을 삭제할까요?`;if(!confirm(msg))return;for(const p of inAccount(a.id))p.accountId=fallback.id;state.accounts=state.accounts.filter(x=>x.id!==a.id);state.activeAccountId=fallback.id;state.activeId=inAccount(fallback.id)[0]?.id||null;closeAccountModal();render();showToast(`계정을 삭제했습니다. 영상 ${cnt}개는 보존됩니다.`);});
 $('#cancelNew').addEventListener('click',closeModal);$('#newOverlay').addEventListener('click',ev=>{if(ev.target===$('#newOverlay'))closeModal();});$('#cancelAccount').addEventListener('click',closeAccountModal);$('#accountOverlay').addEventListener('click',ev=>{if(ev.target===$('#accountOverlay'))closeAccountModal();});document.addEventListener('keydown',ev=>{if(ev.key==='Escape'){closeModal();closeAccountModal();}});$('#mobileToggle').addEventListener('click',()=>{const side=$('#sidebar');const collapsed=side.classList.toggle('collapsed');$('#mobileToggle').setAttribute('aria-expanded',String(!collapsed));});
 $('#importFile').addEventListener('change',async(ev)=>{const file=ev.target.files[0];if(!file)return;try{if(file.size>10*1024*1024)throw Error('파일이 너무 큽니다.');const data=JSON.parse(await file.text());if(data.app!=='cutroom-reels'||!Array.isArray(data.projects)||data.projects.length>500)throw Error('컷룸 백업 파일이 아닙니다.');if(!data.projects.length&&(!Array.isArray(data.accounts)||!data.accounts.length))throw Error('복원할 내용이 없습니다.');if(state.projects.length+data.projects.length>500)throw Error('프로젝트는 최대 500개까지 복원할 수 있습니다.');const accountMap=new Map();if(Array.isArray(data.accounts)&&data.accounts.length){if(data.accounts.length+state.accounts.length>80)throw Error('계정은 최대 80개까지 복원할 수 있습니다.');for(const old of data.accounts){const a=normalizeAccount(old);if(!accountMap.has(a.id)){const match=state.accounts.find(x=>x.id===a.id);if(!match){state.accounts.push(a);accountMap.set(old.id,a.id);}else{accountMap.set(old.id,match.id);}}}}else{const acc=newAccount('이전 백업 기록');state.accounts.push(acc);accountMap.set('legacy',acc.id);}const existingIds=new Set(state.projects.map(p=>p.id));const imported=data.projects.map(raw=>{const p=normalize(raw);if(existingIds.has(p.id))p.id=id();existingIds.add(p.id);p.accountId=accountMap.get(raw.accountId)||accountMap.get('legacy')||state.accounts[0].id;return p;});state.projects.unshift(...imported);state.activeAccountId=imported[0]?.accountId||state.accounts[state.accounts.length-1].id;state.activeId=imported[0]?.id||null;repairState();openStep='topic';search='';$('#historySearch').value='';render();showToast(`계정과 영상 기록을 복원했습니다. (영상 ${imported.length}개)`);}catch(e){showToast('가져오기 실패: '+e.message);}finally{ev.target.value='';}});
