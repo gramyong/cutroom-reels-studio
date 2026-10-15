@@ -158,7 +158,7 @@ async function activate(session) {
   synced=null;
  } finally {busy=false;}
  clearInterval(poll);
- poll=setInterval(()=>{if(!synced && user)activate({...session,user:null}).then(()=>activate(session));else refresh();},30000);
+ poll=setInterval(async()=>{if(!user)return;if(!synced){const {data,error}=await client.auth.getSession();if(!error&&data.session){user=null;await activate(data.session);} }else await refresh();},30000);
  updateControls();
 }
 async function importLegacy(){
