@@ -35,7 +35,7 @@ function hasLegacy() {
  if (legacy.projects.length > 1 || legacy.accounts.length > 1) return true;
  const p = legacy.projects[0];
  return !!(p && (Object.keys(p.checks||{}).length || Object.values(p.fields||{}).some(Boolean) ||
-   (p.chips && Object.values(p.chips).some(a=>a?.length)) || (p.title !== '첫 번째 영상 기획')));
+   (p.chips && Object.values(p.chips).some(a=>a?.length)) || p.category || p.refs?.some(r=>r.url||r.views||r.point) || (p.title !== '첫 번째 영상 기획')));
 }
 function updateControls() {
  $('cloudImport').hidden = !(user && hasLegacy() && localStorage.getItem('cutroom-cloud-imported-' + user.id) !== 'yes');
