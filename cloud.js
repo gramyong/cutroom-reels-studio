@@ -131,17 +131,26 @@ function isCloudDirty(){
  return changedCollection(latest.accounts,synced.accounts)||changedCollection(latest.projects,synced.projects);
 }
 async function flushNow(){
- // The editor always commits to localStorage synchronously before invoking this method.
+ // The editor stores changes in localStorage synchronously before calling this.
  if(!user)return client?{ok:false,location:'none',reason:'Google 로그인 필요'}:{ok:true,location:'device'};
  const cacheSaved=saveCache();
  if(!synced)return {ok:cacheSaved,location:cacheSaved?'device':'none',reason:cacheSaved?'클라우드 연결이 복구되면 동기화됩니다.':'이 기기에도 저장하지 못했습니다.'};
- clearTimeout(timer);
- if(syncInFlight)await syncInFlight;
- if(!isCloudDirty()){
-  writeStatus('☁ 클라우드에 저장됨 · ' + (user.email||'Google 로그인'));
-  return {ok:true,location:'cloud'};
+ // Changes may continue while a request is in flight. Never claim cloud success
+ // unless there are no unsynced account/project changes after the last request.
+ for(let attempt=0;attempt<4;attempt++){
+  clearTimeout(timer);
+  if(syncInFlight){
+   const inProgress=await syncInFlight;
+   if(!inProgress?.ok)return inProgress;
+  }
+  if(!isCloudDirty()){
+   writeStatus('☁ 클라우드에 저장됨 · ' + (user.email||'Google 로그인'));
+   return {ok:true,location:'cloud'};
+  }
+  const result=await syncOnce();
+  if(!result?.ok)return result;
  }
- return syncOnce();
+ return {ok:false,location:'device',reason:'계속 입력 중이어서 클라우드에 새로운 변경사항을 저장하고 있습니다. 잠시 후 다시 임시저장해 주세요.'};
 }
 window.addEventListener('beforeunload',ev=>{
  if(!user)return;
