@@ -762,7 +762,7 @@ function openAccountModal(mode='add'){
 }
 function closeAccountModal(){$('#accountOverlay').hidden=true;}
 function downloadText(name,content,type){const blob=new Blob([content],{type:type||'text/plain;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);}const safeName=t=>t.replace(/[\\/:*?"<>|]/g,'_').slice(0,60)||'영상기획';
-function mdExport(p){const a=state.accounts.find(x=>x.id===p.accountId)||currentAccount();const lines=[`# ${p.title}`,``,`- 계정: ${a.name}${a.handle?' (@'+a.handle+')':''}`,`- 계정 테마: ${a.topic||'-'}`,`- 계정 타깃: ${a.audience||'-'}`,`- 카테고리: ${p.category||'-'}`,`- 작성일: ${fmtDate(p.createdAt)}`,`- 수정일: ${fmtDate(p.updatedAt)}`,`- 점검 진행률: **${pct(p)}% (${count(p)}/${TOTAL})**`,``,`---`,`
+function mdExport(p){const a=state.accounts.find(x=>x.id===p.accountId)||currentAccount();const lines=[`# ${p.title}`,``,`- 계정: ${a.name}${a.handle?' (@'+a.handle+')':''}`,`- 계정 테마: ${a.topic||'-'}`,`- 계정 타깃: ${a.audience||'-'}`,`- 카테고리: ${p.category||'-'}`,`- 핵심 메시지: ${a.strategy?.message||'-'}`,`- 콘텐츠 기둥: ${a.strategy?.pillars?.find(x=>x.id===p.pillarId)?.name||'-'}`,`- 선택한 주제: ${p.strategyTopic||'-'}`,`- 작성일: ${fmtDate(p.createdAt)}`,`- 수정일: ${fmtDate(p.updatedAt)}`,`- 점검 진행률: **${pct(p)}% (${count(p)}/${TOTAL})**`,``,`---`,`
 `];const fieldsByStep={topic:[['mainTopic','영상 주제'],['audience','타깃'],['pain','해결할 고민']],hook:[['hookVisual','영상 후킹'],['hookCopy','카피 후킹'],['hookAudio','오디오 후킹'],['hookScene','상황 연출']],script:[['structure','기본 구조'],['keyMessage','핵심 한 문장'],['scriptText','대본']],video:[['shotlist','촬영 컷'],['visualNote','편집 메모']],audio:[['voicePlan','내레이션'],['musicPlan','음악/효과음']],text:[['overlayText','자막 내용'],['fontPlan','자막 위치·폰트']],finish:[['caption','게시글'],['cta','CTA'],['releaseDate','게시일'],['memo','회고/성과']]};for(const s of STEPS){lines.push(`## ${s.icon} ${s.title}`,'');for(const [k,t]of fieldsByStep[s.id]||[]){if(p.fields[k])lines.push(`### ${t}`,'',p.fields[k],'');}if(s.id==='topic')lines.push(`관심 요소: ${(p.chips.motives||[]).join(', ')||'-'}`,'');if(s.id==='hook')lines.push(`후킹 기법: ${(p.chips.hooks||[]).join(', ')||'-'}`,'');if(s.id==='benchmark')p.refs.forEach((r,i)=>{if(r.url||r.point||r.views)lines.push(`### ${REF_TYPES[i][0]}`,'',`- 원본: ${r.url||'-'}`,`- 조회수: ${r.views||'-'}`,`- 적용할 포인트: ${r.point||'-'}`,'');});lines.push('### 체크리스트','');s.items.forEach(([k,t])=>lines.push(`- [${p.checks[k]?'x':' '}] ${t}`));lines.push('');}return lines.join('\n');}
 // One shared report model powers both the live document and all export formats.
 const REPORT_FIELDS={
@@ -790,8 +790,9 @@ function reportMarkup(data){
  <div class="report-meta"><strong>계정</strong> &nbsp;${esc(a.name)}${a.handle?' · @'+esc(a.handle):''}<br>
  <strong>테마</strong> &nbsp;${esc(a.topic||'미설정')} &nbsp; / &nbsp; <strong>분야</strong> &nbsp;${esc(p.category||'미설정')}<br>
  <strong>타깃</strong> &nbsp;${esc(a.audience||'미설정')}<br>
- ${a.tone?`<strong>톤앤매너</strong> &nbsp;${esc(a.tone)}<br>`:''}
- ${a.tagline?`<strong>한 줄 콘셉트</strong> &nbsp;${esc(a.tagline)}<br>`:''}
+ <strong>핵심 메시지</strong> &nbsp;${esc(a.strategy?.message||'미설정')}<br>
+ <strong>콘텐츠 기둥</strong> &nbsp;${esc(a.strategy?.pillars?.find(x=>x.id===p.pillarId)?.name||'미지정')}<br>
+ <strong>기둥의 선택 주제</strong> &nbsp;${esc(p.strategyTopic||'미지정')}<br>
  <strong>작성일</strong> &nbsp;${fmtDate(p.createdAt)} &nbsp;·&nbsp; <strong>수정일</strong> &nbsp;${fmtDate(p.updatedAt)}</div>
  <div class="report-pct-track"><span style="width:${data.percent}%"></span></div><div class="report-stat"><span>전체 제작 체크 현황</span><strong>${data.percent}% &nbsp;·&nbsp; ${data.completed} / ${data.total}개</strong></div></header>
  ${data.sections.map(({step,done,fields,refs,chips,checks})=>`<section class="report-section" data-report-step="${step.id}">
@@ -819,8 +820,9 @@ function setLayoutMode(mode){
 function reportMarkdown(p){
  const d=reportModel(p),a=d.account;
  const lines=[`# ${p.title}`,'',`- **계정:** ${a.name}${a.handle?' (@'+a.handle+')':''}`,`- **계정 테마:** ${a.topic||'미설정'}`,`- **카테고리:** ${p.category||'미설정'}`,`- **계정 타깃:** ${a.audience||'미설정'}`];
- if(a.tone)lines.push(`- **톤앤매너:** ${a.tone}`);
- if(a.tagline)lines.push(`- **한 줄 콘셉트:** ${a.tagline}`);
+ lines.push(`- **핵심 메시지:** ${a.strategy?.message||'미설정'}`);
+ lines.push(`- **콘텐츠 기둥:** ${a.strategy?.pillars?.find(x=>x.id===p.pillarId)?.name||'미지정'}`);
+ lines.push(`- **선택한 주제:** ${p.strategyTopic||'미지정'}`);
  lines.push(`- **작성일:** ${fmtDate(p.createdAt)}`,`- **최근 수정:** ${fmtDate(p.updatedAt)}`,`- **점검 진행률:** ${d.percent}% (${d.completed}/${d.total})`,'','---','');
  for(const sec of d.sections){
   lines.push(`## ${sec.step.icon}. ${sec.step.title}`,'');
@@ -871,8 +873,10 @@ function downloadPdfReport(d,filename){
  paragraph(`계정  ${d.account.name}${d.account.handle?'  @'+d.account.handle:''}    ·    ${d.project.category||'분야 미설정'}`,{size:21,color:'#847588',lineHeight:36});
  if(d.account.topic)paragraph(`콘텐츠 테마  ${d.account.topic}`,{size:20,color:'#847588',lineHeight:34});
  if(d.account.audience)paragraph(`타깃  ${d.account.audience}`,{size:20,color:'#847588',lineHeight:34});
- if(d.account.tone)paragraph(`톤앤매너  ${d.account.tone}`,{size:20,color:'#847588',lineHeight:34});
- if(d.account.tagline)paragraph(`한 줄 콘셉트  ${d.account.tagline}`,{size:20,color:'#847588',lineHeight:34});
+ if(d.account.strategy?.message)paragraph(`핵심 메시지  ${d.account.strategy.message}`,{size:20,color:'#847588',lineHeight:34});
+ const relatedPillar=d.account.strategy?.pillars?.find(x=>x.id===d.project.pillarId);
+ if(relatedPillar)paragraph(`콘텐츠 기둥  ${relatedPillar.name}`,{size:20,color:'#847588',lineHeight:34});
+ if(d.project.strategyTopic)paragraph(`선택한 주제  ${d.project.strategyTopic}`,{size:20,color:'#847588',lineHeight:34});
  paragraph(`작성일 ${fmtDate(d.project.createdAt)}   |   수정일 ${fmtDate(d.project.updatedAt)}`,{size:18,color:'#9a8e96',lineHeight:31,after:12});
  nextIf(84);ctx.fillStyle='#eee9f0';ctx.fillRect(M,y,WIDTH,11);ctx.fillStyle='#baa2c8';ctx.fillRect(M,y,WIDTH*d.percent/100,11);y+=31;
  paragraph(`완성률 ${d.percent}%   ·   체크 완료 ${d.completed} / ${d.total}`,{size:20,weight:700,color:'#795f87',lineHeight:29,after:13});rule(17);
