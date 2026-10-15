@@ -33,6 +33,15 @@ In the video's **주제 선정** stage, select any VALSA facets relevant to that
 
 The V-A-L-S-A coverage number is a descriptive count, **not a performance score** and not a requirement to force every facet into each video. Older videos with no saved VALSA selection remain compatible.
 
+## Draft saving and closing the browser safely
+
+- **Automatic local save:** each input/checklist interaction immediately updates browser localStorage for the current Google user (or the local-only workspace).
+- **Background cloud sync:** signed-in changes are sent to Supabase after a short 950 ms delay. This is not guaranteed to finish before abruptly closing the tab.
+- **Manual 💾 임시저장:** available in both the account overview and individual video workspaces. Clicking it persists local changes immediately and *awaits* cloud synchronization. Only after Supabase confirms all pending changes does the interface show "클라우드 임시저장 완료".
+- **Offline or failed cloud sync:** the UI explicitly says that the data is on this device only or cloud synchronization is incomplete; it does not claim cloud success.
+- **Unsynced close warning:** browsers that support it display a generic confirmation when a signed-in user's changes are not yet uploaded. This cannot prevent sudden app termination or all mobile-browser closures.
+- **Recovery:** for important projects, keep the JSON backup available. Drafts partially typed into an account creation/edit modal are committed when the form is saved, so click 계정과 전략 저장하기 before closing.
+
 ## Implemented
 - Google OAuth via Supabase Auth (PKCE).
 - Cloud accounts and video briefs saved per user, with Supabase PostgreSQL RLS.
