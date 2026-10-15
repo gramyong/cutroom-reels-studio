@@ -18,7 +18,7 @@ auth.hidden = true;
 auth.innerHTML = '<div class="cloud-auth-card"><div class="cloud-auth-mark">c.</div><div class="cloud-auth-kicker">CUTROOM STUDIO</div><h1>나만의 콘텐츠 작업실</h1><p>구글 계정으로 로그인하면 모든 기기에서<br>영상 기획서와 체크리스트를 이어서 작성할 수 있어요.</p><button id="cloudGoogleLogin" type="button">G &nbsp; Google 계정으로 시작하기</button><p class="cloud-auth-sub" id="cloudAuthHint">로그인한 사용자만 자신의 기록을 볼 수 있습니다.</p></div>';
 document.body.append(auth);
 const $ = id => document.getElementById(id);
-let client = null, user = null, synced = null, saving = false, pending = false, timer = null, poll = null, busy = false, activationId = 0, legacy = bridge.snapshot();
+let client = null, user = null, synced = null, saving = false, pending = false, timer = null, poll = null, busy = false, activationId = 0, syncInFlight = null, legacy = bridge.snapshot();
 const json = o => JSON.stringify(o || null);
 const copy = o => JSON.parse(JSON.stringify(o));
 const empty = () => ({accounts:[],projects:[],activeAccountId:null,activeId:null});
@@ -67,8 +67,9 @@ function mergeStates(remote, local, baseline) {
    activeId:local.activeId || remote.activeId};
 }
 function saveCache() {
- if (!user || busy) return;
- try { localStorage.setItem(cacheKey(user.id),json(bridge.snapshot())); } catch(e) { writeStatus('☁ 기기 저장 용량을 확인해 주세요'); }
+ if (!user || busy) return false;
+ try { localStorage.setItem(cacheKey(user.id),json(bridge.snapshot())); return true; }
+ catch(e) { writeStatus('☁ 기기 저장 용량을 확인해 주세요'); return false; }
 }
 function saveBaseline() {
  if (!user || !synced) return;
@@ -84,8 +85,8 @@ async function fetchRemote() {
  throwIfError(a); throwIfError(p);
  return {accounts:a.data.map(x=>x.data),projects:p.data.map(x=>x.data),activeAccountId:null,activeId:null};
 }
-async function syncOnce() {
- if (!user || !synced || busy || saving) return;
+async function performSync() {
+ if (!user || !synced || busy || saving) return {ok:false,location:'device',reason:'클라우드 준비 중'};
  saving=true; pending=false; clearTimeout(timer);
  const before=copy(synced), current=bridge.snapshot();
  const prevAcc=rowsById(before.accounts),prevProj=rowsById(before.projects);
@@ -105,14 +106,52 @@ async function syncOnce() {
   if (removedProj.length) throwIfError(await client.from('cutroom_projects').delete().eq('user_id',uid).in('id',removedProj));
   if (removedAcc.length) throwIfError(await client.from('cutroom_accounts').delete().eq('user_id',uid).in('id',removedAcc));
   synced=current; saveBaseline(); writeStatus('☁ 클라우드에 저장됨 · ' + (user.email||'Google 로그인'));
+  return {ok:true,location:'cloud'};
  } catch (e) {
   pending=true; writeStatus('☁ 저장 실패 · 연결 복구 후 재시도 (' + String(e.message||e).slice(0,65) + ')');
   setTimeout(()=>{ if(user) scheduleSave(); },10000);
+  return {ok:false,location:'device',reason:String(e.message||e)};
  } finally {
   saving=false;
   if (changes(bridge.snapshot(),current)) scheduleSave();
  }
 }
+
+function syncOnce(){
+ if(syncInFlight)return syncInFlight;
+ const job=performSync();
+ syncInFlight=job;
+ const clear=()=>{if(syncInFlight===job)syncInFlight=null;};
+ job.then(clear,clear);
+ return job;
+}
+function isCloudDirty(){
+ if(!user||!synced)return false;
+ const latest=bridge.snapshot();
+ return changedCollection(latest.accounts,synced.accounts)||changedCollection(latest.projects,synced.projects);
+}
+async function flushNow(){
+ // The editor always commits to localStorage synchronously before invoking this method.
+ if(!user)return client?{ok:false,location:'none',reason:'Google 로그인 필요'}:{ok:true,location:'device'};
+ const cacheSaved=saveCache();
+ if(!synced)return {ok:cacheSaved,location:cacheSaved?'device':'none',reason:cacheSaved?'클라우드 연결이 복구되면 동기화됩니다.':'이 기기에도 저장하지 못했습니다.'};
+ clearTimeout(timer);
+ if(syncInFlight)await syncInFlight;
+ if(!isCloudDirty()){
+  writeStatus('☁ 클라우드에 저장됨 · ' + (user.email||'Google 로그인'));
+  return {ok:true,location:'cloud'};
+ }
+ return syncOnce();
+}
+window.addEventListener('beforeunload',ev=>{
+ if(!user)return;
+ saveCache();
+ if(isCloudDirty()){
+  // Browsers may show a generic warning instead of custom wording, or ignore it on mobile.
+  ev.preventDefault();
+  ev.returnValue='';
+ }
+});
 function scheduleSave() {
  if (!user || busy) return;
  saveCache();
@@ -210,10 +249,13 @@ $('cloudLogout').addEventListener('click',async ()=>{
 });
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
 window.addEventListener('online',()=>{if(user){if(synced)scheduleSave();else location.reload();}});
+window.addEventListener('pagehide',()=>{if(user)saveCache();});
 window.CutroomCloud={
  isAuthenticated:()=>!!user,
  getUserId:()=>user?.id||null,
  scheduleSave,
+ flushNow,
+ hasUnsyncedChanges:isCloudDirty,
  isLocked:()=>!!client&&!user
 };
 (async ()=>{
