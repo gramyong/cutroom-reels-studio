@@ -552,6 +552,15 @@ a { color:#78648d; }
 .valsa-tile-title{font-size:11px;font-weight:770;color:#4d4550;margin:8px 0 3px}
 .valsa-tile-en{font-size:9px;color:#9b929a;line-height:1.45}
 .valsa-tile-count{margin-top:9px;font-size:10px;font-weight:730;color:#827287}
+
+/* V-A-L-S-A cards: direct selection for the currently opened video. */
+button.valsa-tile{appearance:none;width:100%;text-align:left;cursor:pointer;font:inherit;display:block;position:relative}
+button.valsa-tile:hover{transform:translateY(-2px);border-color:var(--accent-strong,#b9a4c8);box-shadow:0 6px 18px #6b4f7e19}
+button.valsa-tile:focus-visible{outline:3px solid var(--accent-strong,#9e86b3);outline-offset:3px}
+button.valsa-tile.chosen{border:2px solid var(--accent-strong,#a989be);box-shadow:inset 0 0 0 1px #ffffffb0,0 4px 12px #59447514;padding:11px 9px}
+.valsa-tile-status{margin-top:9px;padding-top:7px;border-top:1px solid #b8aebb38;font-size:10px;color:#7b7080;font-weight:700;line-height:1.4}
+.valsa-tile.chosen .valsa-tile-status{color:var(--accent-ink,#715c80)}
+.valsa-tile-instruction{margin:4px 0 0;color:#92869a;font-size:10px;line-height:1.6}
 .valsa-info{margin-top:14px;border-top:1px solid #ede8e9;padding-top:12px}
 .valsa-info summary{cursor:pointer;list-style:none;font-size:11px;font-weight:740;color:#77667c;display:flex;align-items:center;justify-content:space-between;gap:8px;user-select:none}
 .valsa-info summary::-webkit-details-marker{display:none}
@@ -699,7 +708,7 @@ try{
  else {const rawV1=localStorage.getItem(LEGACY_STORAGE);const data=rawV1?JSON.parse(rawV1):null;const acc=newAccount('내 첫 계정');const projects=Array.isArray(data?.projects)?data.projects.slice(0,300).map(p=>{const q=normalize(p);q.accountId=acc.id;return q;}):[newProject('첫 번째 영상 기획','',acc.id)];state={accounts:[acc],projects,activeAccountId:acc.id,activeId:projects.find(p=>p.id===data?.activeId)?.id||projects[0]?.id||null};}
 }catch(e){const acc=newAccount();const project=newProject('첫 번째 영상 기획','',acc.id);state={accounts:[acc],projects:[project],activeAccountId:acc.id,activeId:project.id};}
 repairState();
-let layoutMode='edit';let openStep='topic',onlyPending=false,search='',toastTimer=null,lastVisiblePct=null,saveErrorShown=false,modalMode='new',accountModalMode='add';
+let layoutMode='edit';let openStep='topic',onlyPending=false,search='',toastTimer=null,lastVisiblePct=null,saveErrorShown=false,modalMode='new',accountModalMode='add',pendingValsaId=null;
 const $=sel=>document.querySelector(sel);
 const currentAccount=()=>state.accounts.find(a=>a.id===state.activeAccountId)||state.accounts[0];
 const inAccount=accountId=>state.projects.filter(p=>p.accountId===accountId);
@@ -741,13 +750,18 @@ function strategyBoard(a){
 }
 
 function valsaBoard(a){
- const posts=inAccount(a.id),coverage=VALSA.filter(v=>posts.some(p=>valSaSelected(p).some(t=>t.id===v.id))).length;
+ const posts=inAccount(a.id),active=current(),hasCurrent=!!(active&&active.accountId===a.id);
+ const selectedIds=hasCurrent?(active.chips?.valsa||[]):[];
+ const coverage=VALSA.filter(v=>posts.some(p=>valSaSelected(p).some(t=>t.id===v.id))).length;
  const pieces=VALSA.map(v=>{
-  const howMany=posts.filter(p=>valSaSelected(p).some(t=>t.id===v.id)).length;
-  return '<div class="valsa-tile '+(howMany?'used':'')+'"><div class="valsa-letter">'+v.letter+'</div><div class="valsa-tile-title">'+esc(v.name)+'</div><div class="valsa-tile-en">'+esc(v.en)+'</div><div class="valsa-tile-count">'+howMany+'개 영상에 활용</div></div>';
+  const count=posts.filter(p=>valSaSelected(p).some(t=>t.id===v.id)).length;
+  const checked=selectedIds.includes(v.id);
+  const intent=hasCurrent?(checked?'현재 영상에서 제외하기':'현재 영상에 적용하기'):'새 영상을 생성해 적용하기';
+  return '<button type="button" class="valsa-tile '+(count?'used ':'')+(checked?'chosen':'')+'" data-valsa-card="'+v.id+'" aria-pressed="'+checked+'" aria-label="'+esc(v.letter+' · '+v.name+' / '+intent)+'" title="'+esc(v.purpose)+'"><div class="valsa-letter">'+v.letter+'</div><div class="valsa-tile-title">'+esc(v.name)+'</div><div class="valsa-tile-en">'+esc(v.en)+'</div><div class="valsa-tile-count">'+count+'개 영상에 활용</div><div class="valsa-tile-status">'+(checked?'✓ 현재 영상에 적용됨':hasCurrent?'＋ 클릭하여 적용':'＋ 새 영상 만들고 적용')+'</div></button>';
  }).join('');
  const examples=VALSA.map(v=>'<div class="valsa-example"><strong>'+v.letter+' · '+esc(v.name)+' ('+esc(v.en)+')</strong><p>'+esc(v.purpose)+'</p><em>'+esc(v.example)+'</em></div>').join('');
- return '<section class="valsa-panel" id="valsaBoard" aria-label="찐팬을 모으는 V-A-L-S-A 운영 전략"><div class="valsa-top"><div><div class="valsa-kicker">ACCOUNT OPERATING STRATEGY · V-A-L-S-A</div><h2>찐팬을 모으는 발사 전략</h2><p class="valsa-description">V-A-L-S-A의 목표는 한 가지 모습만이 아닌, <strong>입체적인 나의 모습</strong>을 보여주는 것.</p></div><div class="valsa-coverage"><b>'+coverage+' / 5</b><small>현재 사용한 요소</small></div></div><div class="valsa-grid">'+pieces+'</div><details class="valsa-info"><summary>다섯 요소를 영상에 적용하는 방법과 예시 보기</summary><div class="valsa-examples">'+examples+'</div></details><div class="valsa-usage-note">영상 개수는 현재 계정에서 각 요소를 선택한 기획서 수입니다. 한 영상에 복수 선택할 수 있으므로 합계가 전체 영상 수보다 많을 수 있습니다. 모든 요소를 매 영상에 억지로 넣을 필요는 없습니다.</div></section>';
+ const helper=hasCurrent?'카드를 클릭하면 현재 열린 영상에 해당 요소가 적용되거나 해제됩니다. 다른 영상에 적용하려면 왼쪽 영상 목록에서 해당 영상을 먼저 선택하세요.':'영상이 아직 없어요. 카드를 누르면 영상 생성창이 열리고, 생성한 영상에 선택한 요소가 적용됩니다.';
+ return '<section class="valsa-panel" id="valsaBoard" aria-label="찐팬을 모으는 V-A-L-S-A 운영 전략"><div class="valsa-top"><div><div class="valsa-kicker">ACCOUNT OPERATING STRATEGY · V-A-L-S-A</div><h2>찐팬을 모으는 발사 전략</h2><p class="valsa-description">V-A-L-S-A의 목표는 한 가지 모습만이 아닌, <strong>입체적인 나의 모습</strong>을 보여주는 것.</p><p class="valsa-tile-instruction">'+helper+'</p></div><div class="valsa-coverage" aria-label="계정 전체 영상에서 활용한 발사 전략 종류 '+coverage+'개, 전체 5개"><b>'+coverage+' / 5</b><small>계정 전체 활용 종류</small></div></div><div class="valsa-grid">'+pieces+'</div><details class="valsa-info"><summary>다섯 요소를 영상에 적용하는 방법과 예시 보기</summary><div class="valsa-examples">'+examples+'</div></details><div class="valsa-usage-note">0/5는 이 계정의 영상 기획에 활용한 VALSA 전략의 <strong>서로 다른 종류 수</strong>이며, 직접 누르는 버튼이 아닙니다. 한 영상에 여러 전략을 적용할 수 있어요. 다섯 가지를 모든 영상에 넣어야 하는 것은 아닙니다.</div></section>';
 }
 function renderMain(){const p=current(),a=currentAccount(),all=inAccount(a.id),finished=all.filter(p=>pct(p)===100).length;
 const overview='<section class="account-overview" aria-label="선택한 계정 정보"><div><div class="account-overview-main"><div class="account-hero-tag"><span>✿ '+esc(a.name)+'</span>'+(a.handle?'<span style="opacity:.67">@'+esc(a.handle)+'</span>':'')+'</div>'+(a.topic?'<span class="account-tag">'+esc(a.topic)+'</span>':'')+(a.audience?'<span class="account-tag">타깃 · '+esc(a.audience)+'</span>':'')+'</div><div class="account-overview-desc">이 계정의 메시지와 콘텐츠 기둥을 기준으로 주제를 선택하고 영상을 기획하세요.</div></div><div class="account-overview-stats"><span><strong>'+all.length+'</strong>개 영상</span><span><strong>'+finished+'</strong>개 완료</span></div></section>';
@@ -765,8 +779,8 @@ function refreshProjectStrategyChoices(preservePillar='',preserveTopic=''){
  $('#newStrategyTopic').innerHTML='<option value="">직접 주제 작성 / 선택하지 않음</option>'+topics.map(t=>'<option value="'+esc(t)+'" '+(preserveTopic===t?'selected':'')+'>'+esc(t)+'</option>').join('');
  $('#newPillar').disabled=!pillars.length;$('#newStrategyTopic').disabled=!topics.length;
 }
-function openModal(mode='new'){modalMode=mode;const p=current(),a=currentAccount();$('#newOverlay').hidden=false;$('#modalTitle').textContent=mode==='rename'?'영상 기획 정보 수정 ✎':'새 영상 기획 ✦';$('#modalDesc').textContent=mode==='rename'?'영상 제목과 소속 계정을 바꿀 수 있어요. 체크 기록은 그대로 유지됩니다.':'계정에 소속된 영상으로 기록되어, 계정을 전환하면 해당 계정의 영상만 볼 수 있어요.';$('#newName').value=mode==='rename'?(p?.title||''):'';$('#newAccountSelect').innerHTML=state.accounts.map(o=>`<option value="${esc(o.id)}" ${o.id===(mode==='rename'?p?.accountId:a.id)?'selected':''}>${esc(o.name)}</option>`).join('');$('#newCategory').value=mode==='rename'?(p?.category||''):(a.topic||'');refreshProjectStrategyChoices(mode==='rename'?p?.pillarId:'',mode==='rename'?p?.strategyTopic:'');$('#newForm .create').textContent=mode==='rename'?'수정 완료 →':'프로젝트 만들기 →';setTimeout(()=>$('#newName').focus(),40);}
-function closeModal(){$('#newOverlay').hidden=true;}
+function openModal(mode='new'){pendingValsaId=null;modalMode=mode;const p=current(),a=currentAccount();$('#newOverlay').hidden=false;$('#modalTitle').textContent=mode==='rename'?'영상 기획 정보 수정 ✎':'새 영상 기획 ✦';$('#modalDesc').textContent=mode==='rename'?'영상 제목과 소속 계정을 바꿀 수 있어요. 체크 기록은 그대로 유지됩니다.':'계정에 소속된 영상으로 기록되어, 계정을 전환하면 해당 계정의 영상만 볼 수 있어요.';$('#newName').value=mode==='rename'?(p?.title||''):'';$('#newAccountSelect').innerHTML=state.accounts.map(o=>`<option value="${esc(o.id)}" ${o.id===(mode==='rename'?p?.accountId:a.id)?'selected':''}>${esc(o.name)}</option>`).join('');$('#newCategory').value=mode==='rename'?(p?.category||''):(a.topic||'');refreshProjectStrategyChoices(mode==='rename'?p?.pillarId:'',mode==='rename'?p?.strategyTopic:'');$('#newForm .create').textContent=mode==='rename'?'수정 완료 →':'프로젝트 만들기 →';setTimeout(()=>$('#newName').focus(),40);}
+function closeModal(){$('#newOverlay').hidden=true;pendingValsaId=null;}
 
 function updateStrategyCountPreview(){
  const target=Number.parseInt($('#strategyTarget').value,10)||0;
@@ -1004,13 +1018,33 @@ case'backup':{downloadText('컷룸_계정별_전체기록_'+new Date().toISOStri
 case'import':$('#importFile').click();break;
 case'markdown':{if(!p)return;downloadText(safeName(currentAccount().name+'_'+p.title)+'_기획서.md',mdExport(p),'text/markdown;charset=utf-8');showToast('현재 영상의 기획서를 저장했습니다.');break;}
 }}
-document.addEventListener('click',ev=>{const act=ev.target.closest('[data-action]');if(act){action(act.dataset.action);return;}const project=ev.target.closest('[data-project]');if(project){const target=state.projects.find(p=>p.id===project.dataset.project&&p.accountId===state.activeAccountId);if(!target)return;state.activeId=target.id;openStep='topic';render();if(window.innerWidth<830){$('#sidebar').classList.add('collapsed');$('#mobileToggle').setAttribute('aria-expanded','false');}window.scrollTo({top:0,behavior:'smooth'});return;}const toggle=ev.target.closest('[data-open]');if(toggle){openStep=openStep===toggle.dataset.open?'':toggle.dataset.open;renderMain();setLayoutMode(layoutMode);if(openStep&&ev.target.classList.contains('step-link'))requestAnimationFrame(()=>document.getElementById('stage-'+openStep)?.scrollIntoView({behavior:'smooth',block:'start'}));return;}const valsa=ev.target.closest('[data-valsa]');if(valsa){const p=current();if(!p)return;const id=valsa.dataset.valsa;if(!VALSA.some(v=>v.id===id))return;const picked=p.chips.valsa||[];p.chips.valsa=picked.includes(id)?picked.filter(x=>x!==id):[...picked,id];valsa.classList.toggle('chosen',p.chips.valsa.includes(id));valsa.setAttribute('aria-pressed',String(p.chips.valsa.includes(id)));touch('topic');renderSidebar();const board=$('#valsaBoard');if(board)board.outerHTML=valsaBoard(currentAccount());return;}const chip=ev.target.closest('[data-chip]');if(chip){const p=current(),key=chip.dataset.chipkey,value=chip.dataset.chip,list=p.chips[key]||[];p.chips[key]=list.includes(value)?list.filter(x=>x!==value):[...list,value];chip.classList.toggle('selected');chip.setAttribute('aria-pressed',String(p.chips[key].includes(value)));touch(key==='hooks'?'hook':'topic');renderSidebar();}});
+
+function toggleValsaSelection(id){
+ const p=current(),v=VALSA.find(x=>x.id===id);
+ if(!p||!v)return;
+ const picked=Array.isArray(p.chips.valsa)?p.chips.valsa:[];
+ const selected=!picked.includes(id);
+ p.chips.valsa=selected?[...picked,id]:picked.filter(x=>x!==id);
+ touch('topic');renderSidebar();
+ const board=$('#valsaBoard');
+ if(board){
+  const detailsOpen=!!board.querySelector('.valsa-info')?.open;
+  board.outerHTML=valsaBoard(currentAccount());
+  if(detailsOpen){const details=$('#valsaBoard .valsa-info');if(details)details.open=true;}
+ }
+ document.querySelectorAll('[data-valsa]').forEach(b=>{
+  const yes=p.chips.valsa.includes(b.dataset.valsa);
+  b.classList.toggle('chosen',yes);b.setAttribute('aria-pressed',String(yes));
+ });
+ showToast(v.name+(selected?' · 현재 영상에 적용했습니다.':' · 현재 영상에서 제외했습니다.'));
+}
+document.addEventListener('click',ev=>{const act=ev.target.closest('[data-action]');if(act){action(act.dataset.action);return;}const project=ev.target.closest('[data-project]');if(project){const target=state.projects.find(p=>p.id===project.dataset.project&&p.accountId===state.activeAccountId);if(!target)return;state.activeId=target.id;openStep='topic';render();if(window.innerWidth<830){$('#sidebar').classList.add('collapsed');$('#mobileToggle').setAttribute('aria-expanded','false');}window.scrollTo({top:0,behavior:'smooth'});return;}const toggle=ev.target.closest('[data-open]');if(toggle){openStep=openStep===toggle.dataset.open?'':toggle.dataset.open;renderMain();setLayoutMode(layoutMode);if(openStep&&ev.target.classList.contains('step-link'))requestAnimationFrame(()=>document.getElementById('stage-'+openStep)?.scrollIntoView({behavior:'smooth',block:'start'}));return;}const valsaCard=ev.target.closest('[data-valsa-card]');if(valsaCard){const id=valsaCard.dataset.valsaCard;if(!VALSA.some(v=>v.id===id))return;if(!current()){openModal('new');pendingValsaId=id;showToast('영상 제목을 입력하면 선택한 VALSA 전략이 자동 적용됩니다.');return;}toggleValsaSelection(id);return;}const valsa=ev.target.closest('[data-valsa]');if(valsa){toggleValsaSelection(valsa.dataset.valsa);return;}const chip=ev.target.closest('[data-chip]');if(chip){const p=current(),key=chip.dataset.chipkey,value=chip.dataset.chip,list=p.chips[key]||[];p.chips[key]=list.includes(value)?list.filter(x=>x!==value):[...list,value];chip.classList.toggle('selected');chip.setAttribute('aria-pressed',String(p.chips[key].includes(value)));touch(key==='hooks'?'hook':'topic');renderSidebar();}});
 document.addEventListener('change',ev=>{if(ev.target.id==='accountSwitch'){selectAccount(ev.target.value);return;}if(ev.target.matches('[data-check]')){let p=current(),k=ev.target.dataset.check,prev=pct(p);p.checks[k]=ev.target.checked;touch();ev.target.closest('.check-row').classList.toggle('checked',ev.target.checked);if(onlyPending&&ev.target.checked){ev.target.closest('.check-row').remove();const list=$(`#stage-${openStep} .check-list`);if(list&&!list.children.length)list.innerHTML='<div class="done-banner" style="grid-column:1/-1">✓ 이 단계의 점검을 모두 완료했습니다.</div>';}updateProgress(prev);}if(ev.target.id==='pendingOnly'){onlyPending=ev.target.checked;renderMain();setLayoutMode(layoutMode);}});
 document.addEventListener('input',ev=>{if(ev.target.matches('[data-field]')){const p=current();p.fields[ev.target.dataset.field]=clean(ev.target.value);touch(ev.target.dataset.field);}if(ev.target.matches('[data-ref]')){const p=current();p.refs[Number(ev.target.dataset.ref)][ev.target.dataset.refkey]=clean(ev.target.value);touch('benchmark');}if(ev.target.id==='historySearch'){search=ev.target.value;renderSidebar();}if(ev.target.id==='newAccountSelect'&&modalMode==='new'&&!$('#newName').value.trim()){const a=state.accounts.find(x=>x.id===ev.target.value);$('#newCategory').value=a?.topic||'';}});
 $('#newPillar').addEventListener('change',()=>refreshProjectStrategyChoices($('#newPillar').value));
 $('#newAccountSelect').addEventListener('change',()=>refreshProjectStrategyChoices());
 $('#newStrategyTopic').addEventListener('change',()=>{if($('#newStrategyTopic').value&&!$('#newName').value.trim())$('#newName').value=$('#newStrategyTopic').value;});
-$('#newForm').addEventListener('submit',ev=>{ev.preventDefault();const title=$('#newName').value.trim();const accountId=$('#newAccountSelect').value;if(!title||!state.accounts.some(a=>a.id===accountId))return;if(modalMode==='rename'){const p=current();if(!p)return;p.title=clean(title,120);p.category=clean($('#newCategory').value.trim(),80);p.pillarId=$('#newPillar').value;p.strategyTopic=$('#newStrategyTopic').value;p.accountId=accountId;p.updatedAt=new Date().toISOString();state.activeAccountId=accountId;state.activeId=p.id;persist();closeModal();render();showToast('영상 정보와 소속 계정을 저장했습니다.');}else{const a=state.accounts.find(a=>a.id===accountId),p=newProject(title,$('#newCategory').value.trim()||a.topic,accountId);p.pillarId=$('#newPillar').value;p.strategyTopic=$('#newStrategyTopic').value;if(p.strategyTopic)p.fields.mainTopic=p.strategyTopic;if(a.audience)p.fields.audience=a.audience;state.projects.unshift(p);state.activeAccountId=accountId;state.activeId=p.id;openStep='topic';closeModal();render();showToast(`“${a.name}”에 새 영상 기획을 만들었습니다.`);window.scrollTo({top:0,behavior:'smooth'});}});
+$('#newForm').addEventListener('submit',ev=>{ev.preventDefault();const title=$('#newName').value.trim();const accountId=$('#newAccountSelect').value;if(!title||!state.accounts.some(a=>a.id===accountId))return;if(modalMode==='rename'){const p=current();if(!p)return;p.title=clean(title,120);p.category=clean($('#newCategory').value.trim(),80);p.pillarId=$('#newPillar').value;p.strategyTopic=$('#newStrategyTopic').value;p.accountId=accountId;p.updatedAt=new Date().toISOString();state.activeAccountId=accountId;state.activeId=p.id;persist();closeModal();render();showToast('영상 정보와 소속 계정을 저장했습니다.');}else{const a=state.accounts.find(a=>a.id===accountId),p=newProject(title,$('#newCategory').value.trim()||a.topic,accountId);p.pillarId=$('#newPillar').value;p.strategyTopic=$('#newStrategyTopic').value;if(pendingValsaId&&VALSA.some(v=>v.id===pendingValsaId))p.chips.valsa=[pendingValsaId];if(p.strategyTopic)p.fields.mainTopic=p.strategyTopic;if(a.audience)p.fields.audience=a.audience;state.projects.unshift(p);state.activeAccountId=accountId;state.activeId=p.id;openStep='topic';closeModal();render();showToast(`“${a.name}”에 새 영상 기획을 만들었습니다.`);window.scrollTo({top:0,behavior:'smooth'});}});
 $('#strategyTarget').addEventListener('input',updateStrategyCountPreview);
 for(let i=0;i<4;i++){ $('#strategyPillar'+i).addEventListener('input',updateStrategyCountPreview);$('#strategyCount'+i).addEventListener('input',updateStrategyCountPreview); }
 $('#accountForm').addEventListener('submit',ev=>{
