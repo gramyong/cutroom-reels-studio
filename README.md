@@ -2,6 +2,21 @@
 
 Pastel-themed video planning checklist with Google sign-in, live briefs, per-user cloud workspaces and Vercel continuous deployment.
 
+## Account content strategy — four stages
+
+In the account creation/edit dialog, creators design an account before publishing:
+
+1. **Core message / mission** — what this account wants to communicate to its audience.
+2. **Four content pillars** — the categories supporting that message.
+3. **Topic ideas per pillar** — one video concept per line.
+4. **Production allocation** — choose a target number of videos, then distribute exact quantities across the four pillars. Example: target 8 = 4 + 2 + 1 + 1.
+
+Each account's mission, topic ideas and production mix appear at the **top of the workspace** as an always-visible strategy compass. The four cards show percentage allocations and how many video drafts were assigned to each pillar.
+
+When creating or renaming a video, choose a pillar and optionally choose one of its planned topics. The live brief and MD/PDF exports include the selected pillar and account mission.
+
+**Existing accounts and cloud records:** Previous account/project JSON remains readable; missing strategy fields are initialized as an incomplete draft. Open Account Settings to fill out the new strategy. No schema migration is required because the user-owned data uses JSONB and RLS remains enforced. Previous tone/tagline UI inputs were removed.
+
 ## Implemented
 - Google OAuth via Supabase Auth (PKCE).
 - Cloud accounts and video briefs saved per user, with Supabase PostgreSQL RLS.
