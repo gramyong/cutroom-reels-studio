@@ -1,0 +1,754 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f8f7f3">
+<meta name="description" content="영상 기획부터 3초 후킹, 대본, 촬영, 오디오, 자막까지. 영상마다 진행률과 히스토리를 저장하는 인터랙티브 릴스 기획 스튜디오.">
+<title>컷룸 | 릴스 기획 스튜디오</title>
+<style>
+/* CUTROOM — Pastel Journal Edition */
+:root {
+  color-scheme: light;
+  --bg: #f8f7f3;
+  --paper: #fffefa;
+  --sidebar: #f3f0e9;
+  --panel: #fffefa;
+  --panel2: #f7f5f1;
+  --line: #e6e2dc;
+  --text: #36343a;
+  --muted: #77757b;
+  --sub: #97939a;
+  --mint: #8c779c;
+  --lav: #e5dcf1;
+  --pink: #f5e4e3;
+  --sage: #dbe8dd;
+  --sage-dark: #728d7c;
+  --yellow: #f7eddb;
+  --sky: #e1edf1;
+  --focus: #9e88af;
+  --shadow: 0 8px 32px rgba(72,58,75,.045);
+}
+* { box-sizing: border-box; }
+html { scroll-behavior:smooth; }
+body {
+  margin:0; min-height:100vh; background:var(--bg); color:var(--text);
+  font-family:"Pretendard","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  font-size:14px; letter-spacing:-.035em; -webkit-font-smoothing:antialiased;
+}
+button,input,textarea,select { font:inherit; }
+button { cursor:pointer; }
+button:disabled { opacity:.48;cursor:default; }
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible { outline:2px solid var(--focus);outline-offset:3px; }
+::selection { background:#e5d7ef;color:#34303a; }
+a { color:#78648d; }
+.app-shell {
+  width:min(1540px,100%);padding:28px;margin:0 auto;display:grid;
+  grid-template-columns:278px minmax(0,1fr);gap:34px;align-items:start;
+}
+/* Sidebar: quiet linen notebook */
+.sidebar {
+  background:var(--sidebar);border:1px solid #eeeae4;border-radius:19px;
+  min-height:calc(100vh - 56px);position:sticky;top:28px;
+  display:flex;flex-direction:column;padding:24px 19px 20px;z-index:8;
+  max-height:calc(100vh - 56px);
+}
+.brand { display:flex;align-items:center;gap:12px;margin:3px 3px 34px; }
+.brand-logo {
+  height:43px;width:43px;flex:none;border-radius:13px;
+  display:grid;place-items:center;background:#e6dcec;color:#6f5b7a;
+  border:1px solid #ded0e3;
+  font-family:Georgia,serif;font-size:28px;font-weight:bold;letter-spacing:-.06em;
+}
+.brand-title { font-size:23px;font-weight:750;letter-spacing:-.085em;line-height:1.06; }
+.brand-title span { display:inline-block;vertical-align:middle;font-size:9px!important;letter-spacing:.14em!important;font-weight:700;color:#9a86a7!important;margin-left:2px; }
+.brand-caption { font-size:9px;letter-spacing:.14em;color:#958b98;font-weight:650;margin-top:7px; }
+.btn-new {
+  width:100%;border:1px solid #dcd1e7;padding:14px 15px;border-radius:12px;
+  background:#e5dbed;color:#554760;font-weight:750;font-size:13px;
+  display:flex;justify-content:center;align-items:center;gap:8px;
+  transition:transform .24s,background .24s,border-color .24s;
+}
+.btn-new:hover { transform:translateY(-2px);background:#dbcee6;border-color:#cdbcda; }
+.btn-new span { line-height:1; }
+.side-section { margin-top:32px;display:flex;align-items:center;justify-content:space-between;gap:8px; }
+.label-upper { font-size:11px;color:#78707b;font-weight:750;letter-spacing:-.025em; }
+.count-pill { background:#fffafc;border:1px solid #e9e1e9;padding:4px 9px;border-radius:99px;color:#82788a;font-size:10px; }
+.search-wrap { margin-top:12px;position:relative; }
+.search-wrap:before { content:"⌕";position:absolute;left:12px;top:7px;color:#a8a0aa;font-size:21px; }
+.search-wrap input {
+  width:100%;background:rgba(255,255,255,.68);border:1px solid #e9e3e0;
+  padding:12px 12px 12px 34px;border-radius:10px;color:var(--text);
+  font-size:12px;outline:none;transition:border-color .2s;
+}
+.search-wrap input:focus { border-color:#beaace; }
+.search-wrap input::placeholder { color:#afa9ad; }
+.project-list { margin-top:13px;display:flex;flex-direction:column;gap:8px;overflow:auto;min-height:80px;padding:0 2px 10px 0;scrollbar-color:#dcd3dc transparent; }
+.project-card {
+  width:100%;text-align:left;color:var(--text);border:1px solid #e7e0dd;
+  background:rgba(255,255,255,.62);border-radius:11px;padding:13px 12px;
+  display:grid;gap:10px;transition:border-color .2s,transform .2s,background .2s;
+}
+.project-card:hover { border-color:#c8b8d2;transform:translateX(2px); }
+.project-card.active { border-color:#cfc0d9;background:#fffafd;box-shadow:inset 3px 0 #b4a0c7; }
+.p-row { display:flex;justify-content:space-between;gap:8px;align-items:center; }
+.p-title { font-size:12px;font-weight:730;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:164px; }
+.p-pct { font-size:12px;font-weight:760;color:#826a91;font-variant-numeric:tabular-nums; }
+.p-sub { font-size:10px;color:#948b93; }
+.thin-track { width:100%;height:4px;border-radius:20px;background:#ece7ec;overflow:hidden; }
+.thin-fill { height:100%;background:#b6a7c9;border-radius:20px;transition:width .65s cubic-bezier(.22,.8,.3,1); }
+.side-bottom { margin-top:auto;padding-top:18px;border-top:1px solid #e3dbd7;display:grid;gap:8px; }
+.ghost-btn {
+  padding:11px 12px;border:1px solid #e4ded9;background:#fffefa;border-radius:10px;
+  color:#6b646b;font-weight:620;font-size:11px;display:flex;gap:8px;
+  align-items:center;justify-content:center;transition:background .2s,border-color .2s;
+}
+.ghost-btn:hover { background:#eee8f1;border-color:#d6cadc; }
+.back-note { font-size:10px;line-height:1.8;color:#a49ba2;margin:4px 0 0; }
+.empty-search { padding:22px 8px;font-size:12px;color:var(--sub);text-align:center;line-height:1.7; }
+/* Workspace heading and quiet tools */
+.main { min-width:0;padding-bottom:55px; }
+.topline { display:flex;align-items:center;justify-content:space-between;gap:12px;margin:3px 0 19px; }
+.topline .small-crumb { color:#a59aa8;font-size:11px;letter-spacing:.04em;font-weight:650; }
+.top-actions { display:flex;gap:8px;align-items:center;flex-wrap:wrap; }
+.top-action {
+  border:1px solid #e7e1dd;background:#fffefa;border-radius:9px;
+  color:#797078;padding:9px 11px;font-size:11px;font-weight:650;
+  transition:background .22s,border-color .22s,transform .22s;
+}
+.top-action:hover { background:#f6f0f6;border-color:#d9c9e2;transform:translateY(-1px); }
+.danger { color:#aa7882; }
+.top-action.danger:hover { background:#faeded;border-color:#e8cbd1; }
+.mobile-nav { display:none; }
+/* Cream-lilac hero like a paper planner cover */
+.hero {
+  background:#ebe5f1;border:1px solid #e4daeb;border-radius:19px;
+  padding:33px 35px 25px;position:relative;overflow:hidden;
+}
+.hero:before {
+  content:"";position:absolute;right:-69px;bottom:-135px;width:220px;height:220px;
+  border:1px solid rgba(143,123,167,.19);border-radius:50%;pointer-events:none;
+}
+.hero:after {
+  content:"";position:absolute;right:-34px;bottom:-100px;width:160px;height:160px;
+  border:1px solid rgba(143,123,167,.12);border-radius:50%;pointer-events:none;
+}
+.hero-wrap { display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:center;position:relative;z-index:1; }
+.overline { display:flex;align-items:center;gap:10px;color:#84758c;font-size:10px;font-weight:750;letter-spacing:.13em;margin-bottom:16px; }
+.glow-dot { width:7px;height:7px;border-radius:50%;background:#ad97c0;box-shadow:none;animation:breathe 3s ease-in-out infinite; }
+.hero h1 { font-size:clamp(27px,3.2vw,43px);letter-spacing:-.07em;line-height:1.24;margin:0 0 14px;font-weight:750;max-width:720px;word-break:keep-all; }
+.hero p { margin:0;color:#776f7b;font-size:12px;line-height:1.85;max-width:660px; }
+.hero strong.em { color:#755f87;font-weight:750; }
+.progress-ring { width:150px;height:150px;position:relative;display:grid;place-items:center;flex:none; }
+.progress-ring svg { position:absolute;width:100%;height:100%;transform:rotate(-90deg);overflow:visible; }
+.progress-ring circle { fill:none;stroke-width:9; }
+.progress-ring .ring-base { stroke:#dcd2e6; }
+.progress-ring .ring-value { stroke:#9d87b2;stroke-linecap:round;transition:stroke-dashoffset .8s cubic-bezier(.2,.76,.25,1); }
+.ring-inner { z-index:1;text-align:center; }
+.ring-number { font-size:39px;font-weight:720;letter-spacing:-.07em;line-height:1;font-variant-numeric:tabular-nums;color:#56455f; }
+.ring-number span { font-size:17px;margin-left:2px;color:#88758f; }
+.ring-label { font-size:10px;color:#95839e;font-weight:750;margin-top:8px;letter-spacing:.11em; }
+.hero-bottom {
+  border-top:1px solid rgba(154,135,163,.25);margin-top:26px;padding-top:20px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  position:relative;z-index:1;
+}
+.metrics { display:flex;gap:29px;flex-wrap:wrap; }
+.metric { display:flex;align-items:baseline;gap:8px; }
+.metric strong { font-size:19px;font-weight:750;font-variant-numeric:tabular-nums;color:#554a5b; }
+.metric span { font-size:11px;color:#958b99; }
+.status-chip { display:inline-flex;align-items:center;gap:7px;border-radius:30px;padding:7px 12px;font-size:11px;background:#f6f1f8;color:#75687b;border:1px solid #e5dcea;font-weight:650; }
+.status-chip.done { color:#5a7764;background:#ecf6ed;border-color:#c4d9c9; }
+/* Section headers + tabs */
+.section-headline { display:flex;align-items:center;justify-content:space-between;gap:10px;margin:35px 0 18px; }
+.section-headline h2 { font-size:22px;font-weight:750;letter-spacing:-.055em;margin:0; }
+.section-headline p { color:#8a8688;font-size:12px;margin:7px 0 0;line-height:1.6; }
+.toggle-only { display:flex;gap:7px;align-items:center;font-size:11px;color:#817881;cursor:pointer;white-space:nowrap; }
+.toggle-only input { accent-color:#9a84ad;width:15px;height:15px; }
+.step-nav { display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:11px; }
+.step-nav::-webkit-scrollbar { display:none; }
+.step-link {
+  white-space:nowrap;border:1px solid #e7e1e4;background:#fffefa;color:#867e86;
+  padding:11px 14px;border-radius:99px;font-size:11px;font-weight:650;
+  transition:background .2s,color .2s,transform .2s,border-color .2s;
+}
+.step-link:hover { background:#f6f0f8;border-color:#cfc4d7;transform:translateY(-1px); }
+.step-link.current { background:#e4dcec;border-color:#d9cde3;color:#6c587c; }
+.step-link span { color:#a08da9;margin-right:7px;font-size:10px; }
+.step-link.current span { color:#796588; }
+/* Sections as slim paper sheets */
+.stage-list { display:grid;gap:12px;margin-top:8px; }
+.stage { background:var(--paper);border:1px solid #e8e3de;border-radius:13px;overflow:hidden;transition:border-color .25s,box-shadow .25s;scroll-margin-top:18px; }
+.stage.active { border-color:#d4c8d9;box-shadow:var(--shadow); }
+.stage-toggle { width:100%;background:none;border:0;display:flex;align-items:center;gap:15px;text-align:left;padding:19px 23px;color:var(--text); }
+.stage-index { display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:#e8e0f0;font-size:12px;font-weight:760;color:#80708f;flex:none; }
+.stage:nth-child(4n+2) .stage-index { background:#f5e4e4;color:#a87e86; }
+.stage:nth-child(4n+3) .stage-index { background:#e4ece6;color:#738b7a; }
+.stage:nth-child(4n+4) .stage-index { background:#f5ebdb;color:#aa9278; }
+.stage-title { flex:1;min-width:0; }
+.stage-title strong { display:block;font-size:15px;font-weight:760;letter-spacing:-.035em; }
+.stage-title small { display:block;color:#9b939b;font-size:11px;margin-top:6px;line-height:1.45; }
+.stage-stats { display:flex;gap:18px;align-items:center;flex:none; }
+.stage-counter { font-size:12px;color:#aea4ae;font-variant-numeric:tabular-nums; }
+.stage-counter b { color:#846d95;font-weight:760; }
+.chevron { font-size:17px;color:#aa9da7;transform:rotate(0);transition:transform .25s; }
+.stage.active .chevron { transform:rotate(180deg); }
+.stage-meter { height:3px;background:#f0ecf0; }
+.stage-meter div { height:100%;background:#bba8cc;transition:width .55s cubic-bezier(.2,.75,.3,1); }
+.stage:nth-child(4n+2) .stage-meter div { background:#e4bbbd; }
+.stage:nth-child(4n+3) .stage-meter div { background:#b7cfbf; }
+.stage:nth-child(4n+4) .stage-meter div { background:#e6cfaa; }
+.stage-body { display:none;padding:2px 24px 25px; }
+.stage.active .stage-body { display:block;animation:fadeup .34s both; }
+.tip { font-size:12px;color:#7f7580;background:#f8f5f8;border-left:3px solid #c5b2d0;padding:13px 16px;display:flex;gap:10px;line-height:1.75;margin:15px 0 24px; }
+.tip .ico { color:#a98ab4; }
+.form-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px; }
+.field { min-width:0; }
+.field.wide { grid-column:1/-1; }
+.field label { font-size:12px;color:#6e676e;display:block;margin-bottom:9px;font-weight:680; }
+.field input,.field textarea,.field select {
+  width:100%;background:#fefdfb;border:1px solid #e5dfde;color:var(--text);
+  border-radius:9px;padding:13px 14px;outline:none;font-size:12px;line-height:1.65;
+  transition:border-color .22s,background .22s;
+}
+.field textarea { min-height:96px;resize:vertical; }
+.field input:focus,.field textarea:focus,.field select:focus { border-color:#bda8c9;background:#fff; }
+.field input::placeholder,.field textarea::placeholder { color:#b8b0b4; }
+.chips { display:flex;flex-wrap:wrap;gap:8px; }
+.chip { background:#fbfaf8;border:1px solid #e7e0e4;color:#8b7b88;border-radius:99px;padding:10px 14px;font-size:11px;font-weight:650;transition:background .22s,border-color .22s,color .22s,transform .22s; }
+.chip:hover { transform:translateY(-1px);background:#f6f0f6; }
+.chip.selected { background:#e8dfea;border-color:#cdbcd8;color:#6e587b; }
+.divider { height:1px;background:#ebe6e3;margin:26px 0 23px; }
+.check-head { display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px; }
+.check-head h4 { margin:0;font-size:13px;font-weight:780; }
+.check-head h4 span { color:#9b88a6!important;font-weight:650; }
+.check-head > span { font-size:11px;color:#aaa2a5; }
+.check-list { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px; }
+.check-row { display:flex;align-items:flex-start;gap:12px;border:1px solid #eae5e0;border-radius:10px;padding:15px 13px;background:#fffefa;cursor:pointer;min-height:78px;transition:background .23s,border-color .23s,transform .22s; }
+.check-row:hover { border-color:#c5b4ce;transform:translateY(-1px); }
+.check-row.checked { background:#edf4ed;border-color:#ccdfcd; }
+.check-row input { position:absolute;opacity:0;width:1px;height:1px; }
+.fake-check { width:21px;height:21px;flex:none;display:grid;place-items:center;background:#fffefa;border:1.5px solid #cfc5ca;border-radius:6px;margin-top:1px;transition:all .2s;color:transparent;font-size:13px; }
+.check-row.checked .fake-check { background:#9eb9a4;border-color:#9eb9a4;color:#fff;transform:scale(1.04); }
+.check-row input:focus-visible+.fake-check { outline:2px solid var(--focus);outline-offset:3px; }
+.check-content { display:grid;gap:7px; }
+.check-title { font-size:12px;line-height:1.55;color:#5c565e;font-weight:700; }
+.check-row.checked .check-title { color:#557363; }
+.check-detail { font-size:11px;color:#a29ba0;line-height:1.6; }
+.reference-row { display:grid;grid-template-columns:118px minmax(0,1fr) minmax(0,1fr);gap:10px;margin:12px 0; }
+.reference-row .ref-label { padding:13px 11px;border:1px solid #e7e0e5;border-radius:10px;background:#f7f2f7;font-size:11px;color:#6d5c75;font-weight:700;display:flex;flex-direction:column;gap:7px; }
+.ref-label span { font-size:10px;color:#a08d9f;font-weight:500; }
+.reference-row input,.reference-row textarea { width:100%;border:1px solid #e5dfde;border-radius:10px;background:#fffefa;padding:11px 12px;color:var(--text);font-size:11px;line-height:1.55;resize:vertical; }
+.reference-row input:focus,.reference-row textarea:focus { outline:1px solid #ac95b9; }
+.reference-row textarea { min-height:68px; }
+.source-note { font-size:11px;color:#948d92;line-height:1.7;margin-top:12px; }
+.footer { padding:35px 8px;font-size:11px;color:#a5a0a3;line-height:1.9;text-align:center; }
+/* Feedback, modal, subtle celebration */
+.toast { position:fixed;bottom:24px;right:24px;z-index:50;border:1px solid #d9cddb;border-radius:12px;color:#66576b;background:#fffafc;box-shadow:0 9px 35px #6c5b6b1c;padding:13px 20px;font-size:12px;font-weight:680;opacity:0;transform:translateY(14px);transition:all .27s;pointer-events:none; }
+.toast.show { opacity:1;transform:translateY(0); }
+.overlay { position:fixed;inset:0;background:#302c35a8;z-index:100;display:grid;place-items:center;padding:20px;backdrop-filter:blur(5px); }
+.overlay[hidden] { display:none; }
+.modal { width:min(490px,100%);border:1px solid #e7dfe7;border-radius:19px;background:#fffefa;box-shadow:0 25px 80px #2e283442;padding:30px;animation:pop .26s both; }
+.modal h2 { font-size:23px;letter-spacing:-.055em;margin:0 0 8px;font-weight:730; }
+.modal p { color:#938a94;font-size:12px;line-height:1.8;margin:0 0 23px; }
+.modal .field { margin-top:15px; }
+.modal-actions { display:flex;justify-content:flex-end;gap:9px;margin-top:25px; }
+.modal-actions button { border-radius:9px;padding:12px 16px;font-weight:700;font-size:12px; }
+.modal-actions .cancel { border:1px solid #e7e0e3;background:#fffefa;color:#6e686d; }
+.modal-actions .create { border:1px solid #d8c7de;background:#e5d9ed;color:#5a4667; }
+.celebration { position:fixed;inset:0;pointer-events:none;z-index:80;overflow:hidden; }
+.confetti { position:absolute;top:-20px;width:7px;height:13px;opacity:.76;animation:confettiFall var(--fall,3.1s) ease-in forwards;transform:rotate(var(--rot,0deg));border-radius:2px; }
+.done-banner { margin-top:14px;background:#edf5ee;border:1px solid #caddcd;color:#64826d;border-radius:10px;padding:14px 16px;font-size:12px;font-weight:700; }
+.hidden { display:none!important; }
+@keyframes breathe { 50% { opacity:.48;transform:scale(.87); } }
+@keyframes fadeup { from { opacity:0;transform:translateY(7px); } to { opacity:1;transform:translateY(0); } }
+@keyframes pop { from { opacity:0;transform:scale(.97); } to { opacity:1;transform:scale(1); } }
+@keyframes confettiFall { to { transform:translate(var(--drift),105vh) rotate(760deg);opacity:0; } }
+@media(max-width:1150px) {
+  .app-shell { grid-template-columns:244px minmax(0,1fr);gap:19px;padding:17px; }
+  .sidebar { padding:20px 15px;top:17px;min-height:calc(100vh - 34px);max-height:calc(100vh - 34px); }
+  .reference-row { grid-template-columns:100px 1fr; }
+  .reference-row textarea { grid-column:2/-1; }
+  .hero { padding:27px; }
+}
+@media(max-width:830px) {
+  .app-shell { display:block;padding:13px; }
+  .sidebar { position:relative;top:auto;min-height:0;max-height:none;margin-bottom:18px;padding:14px 17px; }
+  .sidebar.collapsed .side-content { display:none; }
+  .brand { margin-bottom:0; }
+  .sidebar:not(.collapsed) .brand { margin-bottom:17px; }
+  .mobile-nav { display:inline-flex;margin-left:auto;align-items:center;justify-content:center;background:#fffefa;border:1px solid #e2d9e4;color:#79677f;border-radius:9px;padding:9px 13px; }
+  .side-content { max-height:55vh;overflow:auto; }
+  .side-bottom { margin-top:16px; }
+  .topline { padding:2px; }
+  .hero-wrap { grid-template-columns:1fr auto; }
+  .progress-ring { width:125px;height:125px; }
+  .ring-number { font-size:31px; }
+  .metrics { gap:17px; }
+  .check-list { grid-template-columns:1fr; }
+  .hero h1 { font-size:30px; }
+}
+@media(max-width:560px) {
+  .app-shell { padding:10px; }
+  .sidebar { margin-bottom:15px; }
+  .hero { padding:22px 18px; }
+  .hero-wrap { grid-template-columns:minmax(0,1fr) 91px;gap:6px;align-items:center; }
+  .progress-ring { width:90px;height:90px; }
+  .ring-number { font-size:26px; }
+  .ring-number span { font-size:11px; }
+  .ring-label { font-size:7px;margin-top:4px; }
+  .overline { font-size:9px;letter-spacing:.06em;margin-bottom:11px; }
+  .hero h1 { font-size:24px;max-width:100%; }
+  .hero p { font-size:11px;max-width:100%; }
+  .hero-bottom { gap:12px;margin-top:20px;padding-top:16px; }
+  .metrics { gap:15px; }
+  .metric strong { font-size:17px; }
+  .metric span { font-size:10px; }
+  .status-chip { font-size:10px; }
+  .form-grid { grid-template-columns:1fr;gap:15px; }
+  .stage-toggle { padding:15px 13px;gap:10px; }
+  .stage-index { width:35px;height:35px; }
+  .stage-title strong { font-size:13px; }
+  .stage-title small { font-size:10px; }
+  .stage-stats { gap:7px; }
+  .stage-counter { font-size:10px; }
+  .stage-body { padding:2px 13px 18px; }
+  .top-action { padding:8px 9px;font-size:11px; }
+  .topline .small-crumb { font-size:9px; }
+  .section-headline h2 { font-size:19px; }
+  .section-headline p { font-size:11px; }
+  .reference-row { grid-template-columns:1fr; }
+  .reference-row textarea { grid-column:1; }
+  .reference-row .ref-label { flex-direction:row;align-items:center; }
+  .toast { left:15px;right:15px;bottom:15px;text-align:center; }
+}
+@media(prefers-reduced-motion:reduce) {
+  *,*:before,*:after { scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important; }
+}
+
+
+/* Account spaces — soft editorial organizer */
+.account-chooser{border:1px solid #e3dedb;background:#fffefa;border-radius:13px;padding:14px;margin:1px 0 15px;box-shadow:0 3px 10px #5e4e5910}
+.account-caption{font-size:10px;font-weight:780;color:#938696;letter-spacing:.045em;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.account-caption .count{font-size:10px;color:#9e919d;font-weight:550}
+.account-select-line{display:flex;align-items:center;gap:9px}
+.account-avatar{height:34px;width:34px;flex:none;display:grid;place-items:center;border:1px solid var(--accent-border,#ded0e3);border-radius:11px;background:var(--accent-soft,#ece4f2);color:var(--accent-ink,#695878);font-weight:800;font-size:16px;transition:background .3s,color .3s}
+.account-chooser select{background:#fffefa;border:0;outline:none;min-width:0;flex:1;color:#48414b;font-weight:740;font-size:13px;padding:7px 21px 7px 0;text-overflow:ellipsis}
+.account-chooser select:focus-visible{outline:2px solid var(--focus);border-radius:5px}
+.account-handle{font-size:10px;color:#9d929e;margin:6px 0 9px 43px;overflow:hidden;text-overflow:ellipsis}
+.account-details{margin-top:11px;padding-top:11px;border-top:1px dashed #e7e0df;display:flex;gap:6px;flex-wrap:wrap;min-height:25px}
+.account-tag{display:inline-flex;padding:5px 8px;border-radius:6px;color:#73687a;background:#f5f1f6;font-size:10px;line-height:1.25}
+.account-chooser-actions{display:flex;gap:7px;margin-top:12px}
+.account-mini-btn{flex:1;padding:9px 7px;border:1px solid #e8e0e6;background:#f9f6f8;border-radius:8px;color:#7a6b7e;font-size:10px;font-weight:750;transition:background .2s,transform .2s}
+.account-mini-btn:hover{background:var(--accent-soft,#eae2f2);transform:translateY(-1px)}
+.account-mini-btn.add{background:var(--accent-soft,#eae2f2);border-color:var(--accent-border,#e2d7e8);color:var(--accent-ink,#6a577d)}
+.account-hero-tag{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border:1px solid var(--accent-border,#d8cadd);border-radius:99px;background:var(--accent-soft,#eee6f5);color:var(--accent-ink,#715c80);font-size:11px;font-weight:740;max-width:100%;}
+.account-hero-tag span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.account-overview{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:17px 20px;border:1px solid #e9e4e0;border-radius:12px;margin-bottom:16px;background:#fffefa}
+.account-overview-main{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.account-overview-desc{font-size:11px;color:#988e97;line-height:1.6;margin-top:8px;max-width:680px;word-break:keep-all}
+.account-overview-stats{display:flex;gap:22px;align-items:center;color:#817787;white-space:nowrap;font-size:10px}
+.account-overview-stats strong{font-size:15px;color:var(--accent-ink,#716079);margin-right:3px}
+.empty-workspace{border:1px solid #e7e0e7;background:#fffefa;border-radius:19px;padding:55px 30px;text-align:center;animation:fadeup .32s ease}
+.empty-workspace .empty-art{width:74px;height:74px;border-radius:24px;background:var(--accent-soft,#eee4f4);display:grid;place-items:center;color:var(--accent-ink,#6e5c7b);font-family:Georgia,serif;font-size:37px;margin:0 auto 19px}
+.empty-workspace h1{font-size:29px;letter-spacing:-.07em;font-weight:750;margin:0 0 12px}
+.empty-workspace p{font-size:12px;color:#8e858f;line-height:1.9;margin:0 auto 21px;max-width:450px}
+.empty-workspace .btn-new{max-width:230px;margin:0 auto}
+.account-note{padding:11px 14px;background:#faf7f7;color:#8d7a86;border:1px solid #ede5e8;border-radius:9px;font-size:10px;line-height:1.7;margin-top:12px}
+.account-modal .modal{width:min(540px,100%);max-height:min(91vh,850px);overflow-y:auto;}
+.account-modal .form-grid{gap:13px;margin-bottom:11px}
+.account-modal .field input,.account-modal .field textarea{padding:11px 12px}
+.palette-options{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:11px}
+.palette-choice{display:inline-flex;align-items:center;gap:7px;border:1px solid #e9e2e4;border-radius:99px;padding:7px 11px;background:#fffdfa;cursor:pointer;color:#8c808c;font-size:11px}
+.palette-choice:has(input:checked){border-color:#aaa0aa;background:#f6f0f5;color:#524856}
+.palette-choice input{position:absolute;opacity:0;width:1px;height:1px}
+.palette-choice input:focus-visible+.palette-dot{outline:2px solid #847390;outline-offset:3px}
+.palette-dot{display:inline-block;width:16px;height:16px;border-radius:50%;border:1px solid #00000010;background:var(--dot)}
+.account-delete{border:0;background:none;color:#ab777f;font-size:11px;font-weight:700;padding:10px 4px;margin-right:auto}
+.account-delete:hover{text-decoration:underline}
+/* Controlled account accent without changing the calm pastel foundation */
+.btn-new,.step-link.current,.stage-index,.brand-logo,.chip.selected{transition:background .3s,border-color .3s,color .3s,transform .22s}
+.btn-new{background:var(--accent-soft,#e5dbed);border-color:var(--accent-border,#dcd1e7);color:var(--accent-ink,#554760)}
+.btn-new:hover{background:var(--accent-hover,#dbcee6);border-color:var(--accent-border,#cdbcda)}
+.brand-logo{background:var(--accent-soft,#e6dcec);border-color:var(--accent-border,#ded0e3);color:var(--accent-ink,#6f5b7a)}
+.project-card.active{border-color:var(--accent-border,#cfc0d9);box-shadow:inset 3px 0 var(--accent-strong,#b4a0c7)}
+.p-pct,.stage-counter b{color:var(--accent-ink,#826a91)}
+.thin-fill,.stage-meter div{background:var(--accent-strong,#b6a7c9)}
+.hero{background:var(--accent-hero,#ebe5f1);border-color:var(--accent-border,#e4daeb)}
+.ring-value{stroke:var(--accent-strong,#9d87b2)!important}
+.step-link.current{background:var(--accent-soft,#e4dcec);border-color:var(--accent-border,#d9cde3);color:var(--accent-ink,#6c587c)}
+.chip.selected{background:var(--accent-soft,#e8dfea);border-color:var(--accent-border,#cdbcd8);color:var(--accent-ink,#6e587b)}
+.topline .small-crumb span,.hero strong.em{color:var(--accent-ink,#755f87)!important}
+@media(max-width:830px){.account-overview{flex-wrap:wrap}.account-overview-stats{width:100%;justify-content:flex-start}}
+@media(max-width:560px){.account-overview{padding:14px}.account-overview-stats{gap:15px}.account-modal .modal{padding:22px}}
+
+
+/* LIVE BRIEF — gentle paper document next to the editor */
+.app-shell{width:min(1790px,100%);grid-template-columns:260px minmax(0,1fr);gap:23px}
+.editor-layout{display:grid;grid-template-columns:minmax(0,1.18fr) minmax(340px,.82fr);gap:20px;align-items:start}
+.editor-pane,.preview-pane{min-width:0}
+.editor-pane .hero{padding:23px 24px 19px}
+.editor-pane .hero h1{font-size:clamp(24px,2.5vw,34px)}
+.editor-pane .hero p{font-size:11px}
+.editor-pane .progress-ring{width:110px;height:110px}
+.editor-pane .ring-number{font-size:31px}
+.editor-pane .hero-wrap{gap:10px}
+.editor-pane .metrics{gap:13px}
+.editor-pane .metric strong{font-size:16px}
+.editor-pane .metric span{font-size:10px}
+.editor-pane .hero-bottom{margin-top:17px;padding-top:13px}
+.editor-pane .form-grid,.editor-pane .check-list{grid-template-columns:1fr}
+.editor-pane .reference-row{grid-template-columns:95px minmax(0,1fr)}
+.editor-pane .reference-row textarea{grid-column:2}
+.editor-pane .stage-toggle{padding:15px}
+.editor-pane .stage-body{padding:2px 16px 20px}
+.preview-pane{position:sticky;top:20px;max-height:calc(100vh - 40px);display:flex;flex-direction:column;overflow:hidden;border:1px solid #e5dfdc;border-radius:17px;background:#f8f5ef;box-shadow:0 8px 23px #554a5512}
+.preview-toolbar{flex:none;padding:18px 17px 14px;background:#faf7f2;border-bottom:1px solid #e7e1dc}
+.preview-toolbar-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:13px}
+.preview-title{font-size:16px;font-weight:770;letter-spacing:-.052em}
+.preview-desc{font-size:10px;color:#918890;margin-top:5px}
+.preview-live{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;background:#e7efe7;color:#64846d;border-radius:30px;padding:6px 9px;font-weight:750;font-size:10px}
+.preview-live:before{content:'';width:6px;height:6px;border-radius:50%;background:#82ae8a;animation:breathe 2.5s infinite}
+.preview-export{display:flex;gap:8px}
+.preview-export select{border:1px solid #e2dadd;border-radius:9px;background:#fffefa;color:#655e69;padding:10px 11px;min-width:0;flex:1;font-size:12px}
+.preview-export button{background:var(--accent-soft,#e6ddec);color:var(--accent-ink,#705780);border:1px solid var(--accent-border,#d4c6dc);border-radius:9px;font-size:11px;font-weight:750;padding:10px 13px;white-space:nowrap;transition:transform .2s,background .2s}
+.preview-export button:hover{transform:translateY(-1px);background:var(--accent-hover,#d9cbe8)}
+.preview-help{margin-top:9px;font-size:10px;line-height:1.5;color:#a299a1}
+.preview-scroll{padding:18px 13px 26px;overflow-y:auto;min-height:0;scrollbar-color:#dcd1d9 transparent;scrollbar-width:thin}
+.report-page{background:#fffefa;border:1px solid #ece7e2;box-shadow:0 4px 14px rgba(81,66,77,.06);width:100%;max-width:700px;margin:auto;padding:28px 24px 34px;color:#464047;min-height:350px;transition:border-color .28s;word-break:break-word}
+.report-kicker{font-size:9px;font-weight:750;letter-spacing:.16em;color:#9d8fa8;margin-bottom:21px}
+.report-header{border-bottom:1px solid #e9e2e4;padding-bottom:21px;margin-bottom:20px}
+.report-h1{font-size:clamp(23px,2.3vw,29px);font-weight:750;line-height:1.35;letter-spacing:-.065em;margin:0 0 14px;word-break:keep-all}
+.report-meta{font-size:10px;color:#807580;line-height:2}
+.report-meta strong{font-weight:720;color:#5e515d}
+.report-pct-track{height:5px;border-radius:10px;background:#eee9ef;overflow:hidden;margin:14px 0 8px}
+.report-pct-track>span{display:block;background:var(--accent-strong,#b5a0c9);height:100%;border-radius:10px;transition:width .4s cubic-bezier(.2,.75,.4,1)}
+.report-stat{display:flex;justify-content:space-between;font-size:10px;color:#9e939b}
+.report-stat strong{color:var(--accent-ink,#766487)}
+.report-section{margin:27px 0 0;animation:reportAppear .26s ease}
+.report-section-title{display:flex;align-items:center;gap:9px;border-bottom:1px solid #f0ebe8;padding:0 0 9px;margin-bottom:12px}
+.report-no{display:grid;place-items:center;width:24px;height:24px;border-radius:7px;background:#eee6f3;color:#8a719a;font-size:10px;font-weight:750;flex:none}
+.report-section:nth-of-type(4n+2) .report-no{background:#f7e7e6;color:#a27d81}
+.report-section:nth-of-type(4n+3) .report-no{background:#e6f0e6;color:#71917a}
+.report-section:nth-of-type(4n+4) .report-no{background:#f6eedf;color:#a18b6f}
+.report-section-title h3{margin:0;flex:1;font-size:12px;font-weight:740;letter-spacing:-.035em}
+.report-section-title small{font-size:9px;color:#9b919b;white-space:nowrap}
+.report-field{margin:12px 0}
+.report-field-label{font-size:9px;font-weight:740;color:#8e8192;margin-bottom:4px}
+.report-field-value{font-size:11px;line-height:1.8;white-space:pre-wrap;color:#514950;overflow-wrap:anywhere}
+.report-field-value.is-empty{color:#bbb0ba;font-style:italic}
+.report-pill-line{font-size:10px;color:#655967;margin:9px 0;line-height:1.6}
+.report-pill{display:inline-block;border-radius:6px;background:#f2ecf5;color:#796986;margin:3px 4px 3px 0;padding:5px 7px;font-size:9px}
+.report-ref{padding:10px 12px;background:#faf8f5;border-left:2px solid #d8c8df;margin:9px 0}
+.report-ref h4{font-size:10px;margin:0 0 5px;color:#75627e}
+.report-ref .report-field{margin:6px 0}
+.report-list-title{font-size:9px;color:#978d96;font-weight:700;margin:16px 0 8px}
+.report-checklist{display:grid;gap:5px}
+.report-item{display:flex;align-items:flex-start;gap:8px;font-size:10px;line-height:1.65;color:#a19a9f}
+.report-item .mark{width:13px;height:13px;flex:none;margin-top:2px;border:1px solid #dbd4d9;border-radius:4px;display:grid;place-items:center;font-size:9px;color:transparent}
+.report-item.done{color:#546f5d}
+.report-item.done .mark{background:#b4ccbb;color:#fff;border-color:#b4ccbb}
+.report-footer{text-align:center;border-top:1px solid #ebe5e6;padding-top:18px;margin-top:29px;color:#aaa1a8;font-size:9px;letter-spacing:.09em}
+@keyframes reportAppear{from{opacity:.5;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+.layout-switch{display:none;margin:12px 0 15px;background:#efebe6;border:1px solid #e6dfdc;border-radius:12px;padding:5px;gap:5px}
+.layout-switch button{flex:1;border:0;background:transparent;color:#7e737c;border-radius:8px;font-size:12px;padding:10px 9px;font-weight:700}
+.layout-switch button[aria-pressed="true"]{background:#fffefa;box-shadow:0 2px 8px #5c496011;color:var(--accent-ink,#675775)}
+@media (max-width:1220px){
+ .layout-switch{display:flex}
+ .editor-layout{display:block}
+ .editor-layout[data-mode="edit"] .preview-pane{display:none}
+ .editor-layout[data-mode="preview"] .editor-pane{display:none}
+ .preview-pane{position:relative;top:auto;max-height:none;min-height:500px}
+ .preview-scroll{overflow:visible}
+ .editor-pane .form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .editor-pane .check-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:830px){.report-page{max-width:660px}.editor-pane .form-grid,.editor-pane .check-list{grid-template-columns:1fr}}
+@media (max-width:560px){
+ .preview-toolbar{padding:13px 12px}.preview-scroll{padding:12px 9px 20px}.report-page{padding:23px 15px}
+ .preview-desc{font-size:9px}.report-section-title small{font-size:8px}
+ .editor-pane .progress-ring{height:90px;width:90px}.editor-pane .ring-number{font-size:26px}
+ .editor-pane .hero{padding:22px 18px}.editor-pane .hero h1{font-size:24px}
+ .editor-pane .reference-row{grid-template-columns:1fr}.editor-pane .reference-row textarea{grid-column:1}
+}
+
+</style>
+</head>
+<body>
+<div class="app-shell">
+ <aside class="sidebar collapsed" id="sidebar">
+  <div class="brand"><div class="brand-logo" aria-hidden="true">c.</div><div><div class="brand-title">컷룸 <span style="font-size:12px;color:var(--mint);letter-spacing:0">STUDIO</span></div><div class="brand-caption">A LITTLE CREATIVE SPACE</div></div><button class="mobile-nav" id="mobileToggle" aria-label="프로젝트 목록 열기" aria-expanded="false">☰</button></div>
+  <div class="side-content">
+   <section class="account-chooser" aria-label="계정별 작업 공간"><div class="account-caption">MY ACCOUNTS <span class="count" id="accountCount">1개 계정</span></div><div class="account-select-line"><span class="account-avatar" id="accountAvatar" aria-hidden="true">C</span><select id="accountSwitch" aria-label="작업할 인스타그램 계정 선택"></select></div><div id="accountHandle" class="account-handle">계정 핸들</div><div id="accountDetails" class="account-details"></div><div class="account-chooser-actions"><button class="account-mini-btn" data-action="account-edit">✎ 계정 설정</button><button class="account-mini-btn add" data-action="account-add">＋ 계정 추가</button></div></section>
+   <button class="btn-new" data-action="new">새 영상 만들기 <span style="font-size:19px;font-weight:500">＋</span></button>
+   <div class="side-section"><span class="label-upper">현재 계정의 영상 기록</span><span class="count-pill" id="historyCount">0개</span></div>
+   <div class="search-wrap"><input id="historySearch" placeholder="영상 제목 · 카테고리 검색" autocomplete="off" aria-label="프로젝트 검색"></div>
+   <div class="project-list" id="projectList"></div>
+   <div class="side-bottom"><button class="ghost-btn" data-action="backup">⇩ &nbsp; 전체 기록 백업하기</button><button class="ghost-btn" data-action="import">↥ &nbsp; 기록 가져오기</button><input type="file" id="importFile" accept=".json,application/json" class="hidden"><div class="back-note">✓ 계정별 영상과 진행률이 구분되어 저장됩니다.<br>✓ 다른 기기에서도 쓰려면 전체 백업 파일을 가져오세요.</div></div>
+  </div>
+ </aside>
+ <main class="main" id="workspace" aria-live="off"></main>
+</div>
+<div class="overlay" id="newOverlay" hidden><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><h2 id="modalTitle">새 영상 기획 ✦</h2><p id="modalDesc">영상 하나당 하나의 기획 프로젝트를 만들어요. 진행률과 체크 기록은 자동으로 남습니다.</p><form id="newForm"><div class="field"><label for="newName">영상 제목</label><input id="newName" maxlength="120" required placeholder="예: 체형별 드레스 고르는 법"></div><div class="field"><label for="newAccountSelect">영상 소속 계정</label><select id="newAccountSelect" required></select></div><div class="field"><label for="newCategory">콘텐츠 카테고리</label><input id="newCategory" maxlength="80" placeholder="예: 뷰티 / 패션 / 정보 / 일상"></div><div class="modal-actions"><button type="button" class="cancel" id="cancelNew">취소</button><button type="submit" class="create">프로젝트 만들기 →</button></div></form></div></div>
+<div class="overlay account-modal" id="accountOverlay" hidden><div class="modal" role="dialog" aria-modal="true" aria-labelledby="accountModalTitle"><h2 id="accountModalTitle">계정 추가</h2><p id="accountModalDesc">계정마다 콘텐츠 성격과 영상 기록을 따로 관리할 수 있습니다.</p><form id="accountForm"><div class="form-grid"><div class="field"><label for="accountName">계정 이름 *</label><input id="accountName" maxlength="70" placeholder="예: 웨딩 인사이트" required></div><div class="field"><label for="accountHandleInput">인스타그램 아이디 (선택)</label><input id="accountHandleInput" maxlength="70" placeholder="예: bridal.tips (로그인 연동 아님)"></div><div class="field"><label for="accountTopic">콘텐츠 테마 / 분야</label><input id="accountTopic" maxlength="80" placeholder="예: 웨딩 · 드레스 분석"></div><div class="field"><label for="accountAudience">주요 타깃 시청자</label><input id="accountAudience" maxlength="160" placeholder="예: 결혼 준비 중인 20~30대"></div><div class="field"><label for="accountTone">콘텐츠 말투 · 분위기</label><input id="accountTone" maxlength="160" placeholder="예: 따뜻하고 전문적인 정보 전달"></div><div class="field"><label for="accountTagline">한 줄 콘셉트</label><input id="accountTagline" maxlength="220" placeholder="예: 어려운 드레스 선택을 쉽게"></div></div><div class="field"><label>계정 구분 컬러</label><div class="palette-options" id="paletteOptions"></div></div><div class="account-note">실제 인스타그램에 로그인하거나 연결하는 기능은 아닙니다. 여러 계정의 영상 기획과 기록을 앱 안에서 분리하기 위한 설정입니다.</div><div class="modal-actions"><button type="button" class="account-delete" id="deleteAccount" hidden>계정 삭제</button><button type="button" class="cancel" id="cancelAccount">취소</button><button type="submit" class="create" id="saveAccount">계정 저장 →</button></div></form></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div><div class="celebration" id="confettiLayer" aria-hidden="true"></div>
+<script>
+(()=>{'use strict';
+const STORAGE='cutroom_reels_workspace_v2';
+const LEGACY_STORAGE='cutroom_reels_workspace_v1';
+const PALETTES={lavender:{name:'라벤더',dot:'#b8a0ce',soft:'#e8deef',hero:'#ece5f2',strong:'#9e86b3',hover:'#dbcee7',border:'#dfd1e7',ink:'#705c7f'},sage:{name:'세이지',dot:'#96bca4',soft:'#e0eee4',hero:'#e8f0e5',strong:'#8eae97',hover:'#d2e5d8',border:'#cbded1',ink:'#547763'},rose:{name:'로즈',dot:'#e3a6b2',soft:'#f6e4e7',hero:'#f9e9e8',strong:'#d2a0ae',hover:'#edd8dd',border:'#ebd3d9',ink:'#946673'},butter:{name:'버터',dot:'#dec393',soft:'#f8eed9',hero:'#f7efdF',strong:'#d6bd88',hover:'#f0e1c0',border:'#edddc1',ink:'#90734d'},sky:{name:'스카이',dot:'#a3c3d0',soft:'#e1eef2',hero:'#e6f0f4',strong:'#96bcca',hover:'#d5e7ed',border:'#c9dfe7',ink:'#5c7d8f'}};
+const STEPS=[
+{id:'topic',title:'주제 선정',short:'주제',subtitle:'모수 · 흥미 · 고통 해소 · 욕망 충족',icon:'01',tip:'좋은 주제는 흥미를 끌거나, 문제를 해결하거나, 욕망을 충족합니다. 누구에게 왜 유용한지를 먼저 정의하세요.',items:[
+['audience','이 영상을 볼 잠재 시청자층이 충분히 넓은가?','너무 좁은 관심사에만 해당하지 않는지 확인'],['target','내 타깃 팔로워 중 다수가 원하는 주제인가?','누가 보고 싶어 하는지 구체적으로 떠올리기'],['value','흥미 유발 · 고통 해소 · 욕망 충족 중 하나 이상인가?','세 가지 중 최소 하나는 충족'],['fresh','너무 뻔하거나 이미 피로도가 높은 주제는 아닌가?','관점 바꾸기 또는 타 카테고리에서 변주하기'],['share','공유·저장할 가치를 검토했는가?','해당된다면 대상과 이유를 명확히, 아니라면 이유를 점검']]},
+{id:'benchmark',title:'벤치마킹',short:'벤치마킹',subtitle:'성공한 이유 파악 · 복제 방지 · 믹서 전략',icon:'02',tip:'강의의 50만 조회수 기준은 벤치마킹 대상을 고르는 실무 지침입니다. 팔로워나 유명세가 아닌 콘텐츠의 성공 원인을 분석하세요.',items:[
+['refs','참고 영상과 조회수를 기록했는가?','가능하면 50만 회 이상을 우선 참고하고 예외 사유는 메모'],['reason','조회수가 잘 나온 이유를 말로 설명할 수 있는가?','후킹 · 주제 · 구조 · 영상 · 오디오 중 무엇이 통했는지'],['fans','유명인/인플루언서의 팬덤 효과를 걸러 보았는가?','사람의 유명세가 아닌 기획력인지 확인'],['old','오래 운영된 계정의 기본 조회수 효과를 점검했는가?','계정의 규모와 영상 자체의 매력을 구분'],['mix','모방 대신 다른 영상의 장점을 섞거나 개선했는가?','A 영상의 후킹 + B 영상의 내용 구조 + C 영상의 편집']]},
+{id:'hook',title:'초반 3초',short:'첫 3초',subtitle:'영상 · 카피라이팅 · 오디오 · 상황 요소',icon:'03',tip:'내용보다 먼저 첫 3초를 설계합니다. 시각적 변화, 문구, 소리가 연결되어 첫 장면에 궁금증을 만들어야 합니다.',items:[
+['visual','첫 3초에 시선을 잡을 영상 요소가 있는가?','장면 · 움직임 · 비포/애프터'],['copy','초반 문구가 바로 이해되거나 호기심을 만드는가?','구체적 문장 · 숫자 · 역설 등'],['audio','내레이션이나 효과음이 첫 장면과 어울리는가?','영상과 오디오가 서로 다른 얘기를 하지 않도록'],['why','시청자가 계속 봐야 하는 이유를 3초 안에 주는가?','답 · 해결 · 반전의 기대감'],['freshHook','후킹 기법을 의도적으로 선택했는가?','호기심 · 이득 · 공감 · 상식 깨기 · 손실 등'],['scene','상황/스토리/대화 요소를 검토했는가?','맥락을 더하면 더 몰입하기 쉬움']]},
+{id:'script',title:'내용 구성 · 대본',short:'대본',subtitle:'P–S · C–A · S–S · S–P–S · C–P–S',icon:'04',tip:'주제는 하나, 문장은 짧게. 처음에 약속한 내용을 끝까지 전개하고, 마지막에도 기억에 남을 한 문장을 남기세요.',items:[
+['one','영상의 중심 주제가 단 하나인가?','서로 다른 주제는 다음 영상으로 분리'],['structure','의도한 내용 구조를 선택하고 지켰는가?','문제→해결 / 호기심→답 / 스토리→제안 등'],['bookends','대본이 쌍괄식으로 구성되어 있는가?','처음과 끝에 핵심 메시지 배치'],['short','문장을 짧고 쉽게 끊어 썼는가?','불필요한 연결어미와 수식 줄이기'],['story','이야기와 예시가 자연스럽게 이어지는가?','말로만 주장하지 않고 화면/사례로 보여주기'],['keyline','시청자가 기억할 한 문장이 있는가?','영상을 본 뒤 머리에 남는 문장']]},
+{id:'video',title:'영상 · 촬영',short:'영상',subtitle:'다양한 구도 · 자연스러운 소스 · 세로 화면',icon:'05',tip:'촬영 품질 자체가 메시지의 신뢰감을 만듭니다. 화면이 지루하지 않게 바뀌면서도 주제를 놓치지 않아야 합니다.',items:[
+['angles','다양한 구도와 장면을 사용했는가?','같은 화면이 오래 이어지지 않도록'],['essence','내 카테고리의 본질이 화면에 잘 드러나는가?','설명이 아니라 화면으로 핵심을 보여주기'],['filter','과도한 필터나 보정은 피했는가?','신뢰감을 해치는 효과는 덜기'],['stock','직접 촬영하지 않은 소스를 남용하지 않았는가?','맥락과 어울리는 소스만 적절히 활용'],['ratio','세로형 9:16 화면에 맞게 제작했는가?','릴스 기준 권장 비율로 정리']]},
+{id:'audio',title:'오디오 · 사운드',short:'오디오',subtitle:'내레이션 · 감정 · 음악 · 효과음',icon:'06',tip:'좋은 화면에도 소리가 어색하면 이탈합니다. 내레이션은 명료하고 자연스럽게, 음악은 내용 전달을 방해하지 않게 설정하세요.',items:[
+['clean','내레이션 녹음 음질이 깔끔한가?','잡음과 울림 · 중복 수음 확인'],['emotion','내레이션에서 감정과 강약이 느껴지는가?','대본을 기계적으로 읽는 느낌 피하기'],['mood','목소리 톤이 영상 분위기와 어울리는가?','빠르기와 호흡까지 고려'],['fx','효과음을 과도하게 쓰지 않았는가?','주의 집중에 실제 도움이 되는 효과만'],['music','배경음악이 분위기와 어울리고 음량이 적절한가?','나레이션보다 튀지 않게 조절']]},
+{id:'text',title:'화면 자막 · 텍스트',short:'자막',subtitle:'가독성 · 위치 · 일관성 · UI 안전 영역',icon:'07',tip:'화면 아래쪽의 인스타 버튼과 겹치지 않도록 주의하세요. 자막은 한 시선 안에 읽히고 영상 흐름과 일치해야 합니다.',items:[
+['single','한 장면에 너무 많은 자막을 띄우지 않았는가?','두 영역 이상을 동시에 읽게 하지 않기'],['readable','글자 크기와 폰트가 충분히 잘 보이는가?','모바일 화면에서 읽기 테스트'],['location','자막을 눈에 잘 보이는 위치에 놓았는가?','상단/하단 분산을 피하고 한 영역 사용'],['font','폰트와 스타일이 영상 분위기에 어울리는가?','선명하고 일관된 타이포그래피'],['safe','프로필 · 좋아요 · 댓글 버튼에 가리지 않는가?','인스타그램 UI 안전 영역 확인']]},
+{id:'finish',title:'캡션 · CTA · 최종 점검',short:'마무리',subtitle:'첫 줄 후킹 · 읽기 흐름 · 행동 유도',icon:'08',tip:'영상 밖에 표시되는 게시글도 콘텐츠 일부입니다. 첫 문장으로 시선을 끌고, 읽기 쉽게 만들고, 한 가지 행동을 요청하세요.',items:[
+['first','게시글의 첫 문장이 후킹되는가?','내용 전체를 읽고 싶게 시작'],['easy','캡션이 짧고 읽기 편한가?','문단 · 줄바꿈 · 핵심 정보'],['end','끝까지 읽을 수 있도록 흐름을 만들었는가?','내용과 관련 없는 장황함 줄이기'],['cta','콘텐츠에 맞는 CTA가 들어갔는가?','저장 · 공유 · 댓글 · 팔로우 등 중 한 가지'],['final','게시 전 영상·음성·자막을 처음부터 끝까지 재확인했는가?','휴대폰에서 실제 재생 후 오류 찾기']]}
+];
+const TOTAL=STEPS.reduce((n,s)=>n+s.items.length,0);
+const HOOKS=['권위 부여','호기심 자극','이득 암시','공감 유도','비포·애프터','상식 깨기','부정/손실 강조','구체적 숫자','논란 유도'];
+const MOTIVES=['흥미 유발','고통 해소','욕망 충족','공유·저장 가치'];
+const REF_TYPES=[['A · 후킹','첫 3초에서 가져올 요소'],['B · 구성','전개 · 대본에서 가져올 요소'],['C · 연출','영상 · 편집에서 가져올 요소']];
+const clean=(s,max=12000)=>String(s??'').slice(0,max);
+const esc=s=>clean(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtDate=d=>{try{return new Intl.DateTimeFormat('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(d));}catch{return '-';}};
+const id=()=> (crypto?.randomUUID?.() || ('v'+Date.now()+'_'+Math.random().toString(36).slice(2)));
+const newAccount=(name='내 첫 계정')=>({id:id(),name:clean(name,70),handle:'',topic:'',audience:'',tone:'',tagline:'',palette:'lavender',createdAt:new Date().toISOString()});
+function normalizeAccount(a){const x=newAccount(clean(a?.name,70)||'이름 없는 계정');x.id=clean(a?.id,200)||x.id;x.handle=clean(a?.handle,70).replace(/^@/,'');x.topic=clean(a?.topic,80);x.audience=clean(a?.audience,160);x.tone=clean(a?.tone,160);x.tagline=clean(a?.tagline,220);x.palette=Object.hasOwn(PALETTES,a?.palette)?a.palette:'lavender';x.createdAt=isFinite(Date.parse(a?.createdAt))?a.createdAt:x.createdAt;return x;}
+const newProject=(title='첫 번째 영상 기획',category='',accountId='')=>({id:id(),accountId, title:clean(title,120),category:clean(category,80),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),checks:{},fields:{},chips:{},refs:[{url:'',views:'',point:''},{url:'',views:'',point:''},{url:'',views:'',point:''}]});
+function normalize(p){const q=newProject(clean(p?.title,120)||'이름 없는 기획',clean(p?.category,80),clean(p?.accountId,200));q.id=clean(p?.id,200)||q.id;q.createdAt=isFinite(Date.parse(p?.createdAt))?p.createdAt:q.createdAt;q.updatedAt=isFinite(Date.parse(p?.updatedAt))?p.updatedAt:q.updatedAt;q.checks={};q.fields={};q.chips={};for(const s of STEPS)for(const [k]of s.items){if(p?.checks?.[k]===true)q.checks[k]=true;}for(const [k,v]of Object.entries(p?.fields||{}).slice(0,80))q.fields[clean(k,90)]=clean(v);for(const [k,v]of Object.entries(p?.chips||{}).slice(0,30)){if(Array.isArray(v))q.chips[clean(k,90)]=v.map(x=>clean(x,80)).slice(0,30);}q.refs=[0,1,2].map(i=>({url:clean(p?.refs?.[i]?.url,1500),views:clean(p?.refs?.[i]?.views,70),point:clean(p?.refs?.[i]?.point,4000)}));return q;}
+function repairState(){if(!Array.isArray(state.accounts))state.accounts=[];if(!state.accounts.length)state.accounts=[newAccount()];if(!Array.isArray(state.projects))state.projects=[];const accountIds=new Set(state.accounts.map(a=>a.id));for(const p of state.projects)if(!accountIds.has(p.accountId))p.accountId=state.accounts[0].id;if(!accountIds.has(state.activeAccountId))state.activeAccountId=state.accounts[0].id;const visible=state.projects.filter(p=>p.accountId===state.activeAccountId);if(!visible.some(p=>p.id===state.activeId))state.activeId=visible[0]?.id||null;}
+let state;
+try{
+ const rawV2=localStorage.getItem(STORAGE);
+ if(rawV2){const data=JSON.parse(rawV2);if(!Array.isArray(data.accounts)||!Array.isArray(data.projects))throw Error('invalid v2');state={accounts:data.accounts.slice(0,80).map(normalizeAccount),projects:data.projects.slice(0,500).map(normalize),activeAccountId:data.activeAccountId,activeId:data.activeId};}
+ else {const rawV1=localStorage.getItem(LEGACY_STORAGE);const data=rawV1?JSON.parse(rawV1):null;const acc=newAccount('내 첫 계정');const projects=Array.isArray(data?.projects)?data.projects.slice(0,300).map(p=>{const q=normalize(p);q.accountId=acc.id;return q;}):[newProject('첫 번째 영상 기획','',acc.id)];state={accounts:[acc],projects,activeAccountId:acc.id,activeId:projects.find(p=>p.id===data?.activeId)?.id||projects[0]?.id||null};}
+}catch(e){const acc=newAccount();const project=newProject('첫 번째 영상 기획','',acc.id);state={accounts:[acc],projects:[project],activeAccountId:acc.id,activeId:project.id};}
+repairState();
+let layoutMode='edit';let openStep='topic',onlyPending=false,search='',toastTimer=null,lastVisiblePct=null,saveErrorShown=false,modalMode='new',accountModalMode='add';
+const $=sel=>document.querySelector(sel);
+const currentAccount=()=>state.accounts.find(a=>a.id===state.activeAccountId)||state.accounts[0];
+const inAccount=accountId=>state.projects.filter(p=>p.accountId===accountId);
+const current=()=>state.projects.find(p=>p.id===state.activeId&&p.accountId===state.activeAccountId)||null;
+const pct=p=>Math.round(100*count(p)/TOTAL),count=p=>STEPS.reduce((n,s)=>n+s.items.filter(([k])=>p.checks[k]).length,0);
+const stageCount=(p,s)=>s.items.filter(([k])=>p.checks[k]).length;
+function persist(){try{localStorage.setItem(STORAGE,JSON.stringify(state));saveErrorShown=false;}catch(e){if(!saveErrorShown){showToast('저장 공간 문제로 저장에 실패했습니다. 데이터를 백업해주세요.');saveErrorShown=true;}}}
+function touch(changedKey){const p=current();if(p)p.updatedAt=new Date().toISOString();persist();renderLiveDocument(changedKey);}
+function selectAccount(accountId){if(!state.accounts.some(a=>a.id===accountId))return;state.activeAccountId=accountId;const sorted=inAccount(accountId).sort((a,b)=>Date.parse(b.updatedAt)-Date.parse(a.updatedAt));state.activeId=sorted[0]?.id||null;openStep='topic';search='';if($('#historySearch'))$('#historySearch').value='';render();showToast(`${currentAccount().name} 계정으로 전환했습니다.`);}
+function applyPalette(){const p=PALETTES[currentAccount().palette]||PALETTES.lavender;const el=document.documentElement;for(const [name,val]of Object.entries({soft:p.soft,hero:p.hero,strong:p.strong,hover:p.hover,border:p.border,ink:p.ink}))el.style.setProperty('--accent-'+name,val);}
+function showToast(msg){const e=$('#toast');e.textContent=msg;e.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>e.classList.remove('show'),3200);}
+const fval=(p,k)=>esc(p.fields[k]||'');
+const field=(p,k,label,placeholder='',wide=false,type='input',height=80)=>`<div class="field ${wide?'wide':''}"><label for="f-${k}">${label}</label>${type==='textarea'?`<textarea id="f-${k}" data-field="${k}" placeholder="${esc(placeholder)}" style="min-height:${height}px">${fval(p,k)}</textarea>`:type==='select'?`<select id="f-${k}" data-field="${k}">${['선택하기','P–S | 문제 → 해결','C–A | 호기심 → 답','S–S | 스토리 → 제안','S–P–S | 스토리 → 문제 → 해결','C–P–S | 호기심 → 문제 → 해결'].map((x,i)=>`<option value="${i?esc(x):''}" ${p.fields[k]===(i?x:'')?'selected':''}>${x}</option>`).join('')}</select>`:`<input id="f-${k}" data-field="${k}" value="${fval(p,k)}" placeholder="${esc(placeholder)}" maxlength="3000">`}</div>`;
+function tags(p,key,arr){const chosen=p.chips[key]||[];return `<div class="chips" role="group" aria-label="${key}">${arr.map(v=>`<button type="button" class="chip ${chosen.includes(v)?'selected':''}" aria-pressed="${chosen.includes(v)}" data-chipkey="${key}" data-chip="${esc(v)}">${v}</button>`).join('')}</div>`;}
+function inputsFor(p,s){switch(s.id){
+case'topic':return `<div class="form-grid">${field(p,'mainTopic','내 영상의 핵심 주제','한 문장으로 명확하게')}${field(p,'audience','타깃 시청자','예: 드레스를 고르는 예비 신부')}${field(p,'pain','해결할 고민 · 원하는 결과','예: 드레스가 나에게 어울리는지 모르겠는 사람',true,'textarea')}</div><div class="divider"></div><div class="check-head"><h4>사람들이 관심 갖는 이유 (복수 선택)</h4></div>${tags(p,'motives',MOTIVES)}`;
+case'benchmark':return `<div class="check-head"><h4>믹서 전략 · 세 가지 참고 영상</h4><span>A + B + C = 새로운 콘텐츠</span></div>${REF_TYPES.map(([name,help],i)=>`<div class="reference-row"><div class="ref-label">${name}<span>${help}</span></div><div><input data-ref="${i}" data-refkey="url" value="${esc(p.refs[i].url)}" placeholder="원본 영상 링크 또는 제목" aria-label="${name} 링크"><input style="margin-top:8px" data-ref="${i}" data-refkey="views" value="${esc(p.refs[i].views)}" placeholder="조회수 (예: 180만)" aria-label="${name} 조회수"></div><textarea data-ref="${i}" data-refkey="point" placeholder="무엇이 터졌는지 · 어떤 포인트를 가져올지" aria-label="${name} 참고 포인트">${esc(p.refs[i].point)}</textarea></div>`).join('')}<div class="source-note">※ 50만 회 이상은 강의에서 제시한 우선 선별 기준입니다. 50만 미만 영상의 경우 해당 영상을 택한 이유를 메모하세요.</div>`;
+case'hook':return `<div class="form-grid">${field(p,'hookVisual','시작 3초 · 화면에서 보여줄 것','첫 컷, 표정, 장면, 전후 비교',true,'textarea')}${field(p,'hookCopy','시작 3초 · 화면 문구','예: 드레스, 비싸다고 예쁜 건 아닙니다')}${field(p,'hookAudio','시작 3초 · 목소리/효과음','첫 대사 또는 효과음')}${field(p,'hookScene','상황 · 스토리 · 대화 연출','누가 어떤 상황에서 등장하나요?',true,'textarea')}</div><div class="divider"></div><div class="check-head"><h4>후킹 장치 선택 (복수 선택)</h4></div>${tags(p,'hooks',HOOKS)}`;
+case'script':return `<div class="form-grid">${field(p,'structure','내용 구조 선택','','', 'select')}${field(p,'keyMessage','시청자에게 남길 한 문장','영상 전체를 대표하는 문장')}${field(p,'scriptText','촬영용 대본','첫 3초 → 내용 전개 → 핵심 정리 → CTA',true,'textarea',210)}</div>`;
+case'video':return `<div class="form-grid">${field(p,'shotlist','촬영 컷 리스트','1컷: 첫 화면\n2컷: 문제 보여주기\n3컷: 해결 장면',true,'textarea',130)}${field(p,'visualNote','영상·편집 메모','컷 전환 속도, 참고 영상 연출, 필요한 소품',true,'textarea',95)}</div>`;
+case'audio':return `<div class="form-grid">${field(p,'voicePlan','내레이션 플랜','톤, 녹음 방식, 강조할 단어',true,'textarea')}${field(p,'musicPlan','BGM · 효과음 메모','곡 스타일, 들어갈 타이밍, 볼륨',true,'textarea')}</div>`;
+case'text':return `<div class="form-grid">${field(p,'overlayText','영상 속 문구 · 자막','장면별 들어갈 문구 정리',true,'textarea',120)}${field(p,'fontPlan','폰트 · 위치 · 안전 영역 메모','예: 화면 중앙 상단, 버튼 영역 피하기',true,'textarea')}</div>`;
+case'finish':return `<div class="form-grid">${field(p,'caption','게시글 캡션','첫 문장부터 마지막 문장까지',true,'textarea',140)}${field(p,'cta','행동 유도(CTA) 문구','예: 나중에 보고 싶다면 저장해 두세요',true)}${field(p,'releaseDate','게시 예정일 또는 게시일','예: 2026-10-20')}${field(p,'memo','회고 · 성과 메모','게시 후 조회수, 반응, 다음 영상 개선점',true,'textarea')}</div>`;
+}}
+function stageHtml(p,s,i){let done=stageCount(p,s),isOpen=openStep===s.id;let items=s.items.filter(([k])=>!onlyPending||!p.checks[k]);return `<section id="stage-${s.id}" class="stage ${isOpen?'active':''}" data-stage="${s.id}"><button class="stage-toggle" data-open="${s.id}" aria-expanded="${isOpen}"><span class="stage-index">${s.icon}</span><span class="stage-title"><strong>${s.title}</strong><small>${s.subtitle}</small></span><span class="stage-stats"><span class="stage-counter"><b class="stage-done">${done}</b> / ${s.items.length}</span><span class="chevron">⌄</span></span></button><div class="stage-meter"><div style="width:${100*done/s.items.length}%"></div></div><div class="stage-body"><div class="tip"><span class="ico">✦</span><span>${esc(s.tip)}</span></div>${inputsFor(p,s)}<div class="divider"></div><div class="check-head"><h4>✔ 체크리스트 <span style="color:var(--mint);font-size:10px">${s.items.length}개 항목</span></h4><span>확인한 항목만 체크하세요</span></div><div class="check-list">${items.length?items.map(([k,t,h])=>`<label class="check-row ${p.checks[k]?'checked':''}"><input type="checkbox" data-check="${k}" ${p.checks[k]?'checked':''}><span class="fake-check">✓</span><span class="check-content"><span class="check-title">${esc(t)}</span><span class="check-detail">${esc(h)}</span></span></label>`).join(''):'<div class="done-banner" style="grid-column:1/-1">✓ 이 단계의 점검을 모두 완료했습니다.</div>'}</div></div></section>`;}
+function renderAccountChooser(){const a=currentAccount(),p=PALETTES[a.palette]||PALETTES.lavender;$('#accountCount').textContent=`${state.accounts.length}개 계정`;$('#accountSwitch').innerHTML=state.accounts.map(o=>`<option value="${esc(o.id)}" ${o.id===a.id?'selected':''}>${esc(o.name)} (${inAccount(o.id).length})</option>`).join('');$('#accountAvatar').textContent=a.name.slice(0,1).toUpperCase();$('#accountHandle').textContent=a.handle?'@'+a.handle:'연결 없이 계정별 기획을 구분합니다';const detail=[a.topic,a.audience].filter(Boolean);$('#accountDetails').innerHTML=detail.length?detail.map(x=>`<span class="account-tag">${esc(x)}</span>`).join(''):'<span class="account-tag">계정 설정에서 콘텐츠 테마를 입력해 보세요</span>';applyPalette();}
+function renderSidebar(){renderAccountChooser();const p=current(),all=inAccount(state.activeAccountId),ordered=[...all].sort((a,b)=>Date.parse(b.updatedAt)-Date.parse(a.updatedAt));const matching=ordered.filter(o=>(o.title+' '+o.category).toLowerCase().includes(search.toLowerCase()));$('#historyCount').textContent=all.length+'개';$('#projectList').innerHTML=matching.length?matching.map(o=>`<button class="project-card ${o.id===p?.id?'active':''}" data-project="${esc(o.id)}" aria-label="${esc(o.title)} 프로젝트 열기"><div class="p-row"><span class="p-title">${esc(o.title)}</span><span class="p-pct">${pct(o)}%</span></div><div class="p-row"><span class="p-sub">${esc(o.category||'카테고리 없음')}</span><span class="p-sub">${fmtDate(o.updatedAt)}</span></div><div class="thin-track"><div class="thin-fill" style="width:${pct(o)}%"></div></div></button>`).join(''):`<div class="empty-search">${all.length?'검색 결과가 없습니다.':'이 계정에서 만든 영상이 아직 없어요.'}<br>새 영상 기획을 만들어 보세요.</div>`;}
+function renderMain(){const p=current(),a=currentAccount(),all=inAccount(a.id),finished=all.filter(p=>pct(p)===100).length;
+const overview=`<section class="account-overview" aria-label="선택한 계정 정보"><div><div class="account-overview-main"><div class="account-hero-tag"><span>✿ ${esc(a.name)}</span>${a.handle?`<span style="opacity:.67">@${esc(a.handle)}</span>`:''}</div>${a.topic?`<span class="account-tag">${esc(a.topic)}</span>`:''}${a.tone?`<span class="account-tag">${esc(a.tone)}</span>`:''}</div><div class="account-overview-desc">${esc(a.tagline||(a.audience?`타깃: ${a.audience}`:'계정 설정에서 콘텐츠 주제와 타깃을 지정할 수 있어요.'))}</div></div><div class="account-overview-stats"><span><strong>${all.length}</strong>개 영상</span><span><strong>${finished}</strong>개 완료</span></div></section>`;
+if(!p){$('#workspace').innerHTML=`<div class="topline"><div class="small-crumb">WORKSPACE / ${esc(a.name)}</div><div class="top-actions"><button class="top-action" data-action="account-edit">✎ 계정 설정</button></div></div>${overview}<div class="empty-workspace"><div class="empty-art">✿</div><h1>이 계정의 첫 번째 영상</h1><p>‘${esc(a.name)}’ 계정의 영상은 다른 계정과 분리해 관리합니다. 기획을 시작하면 이곳에 체크리스트와 진행률이 표시됩니다.</p><button class="btn-new" data-action="new">영상 기획 시작하기 ＋</button></div>`;lastVisiblePct=null;return;}
+const done=count(p),percent=pct(p);$('#workspace').innerHTML=`<div class="topline"><div class="small-crumb">WORKSPACE &nbsp; / &nbsp; ${esc(a.name)} &nbsp; / &nbsp; <span style="color:var(--mint)">${esc(p.category||'REELS PROJECT')}</span></div><div class="top-actions"><button class="top-action" data-action="rename" title="영상 제목과 계정, 카테고리 수정">✎ 이름변경</button><button class="top-action" data-action="duplicate" title="동일한 내용을 새 프로젝트로 복제">⧉ 복제</button><button class="top-action" data-action="markdown" title="현재 영상 기획서를 마크다운 파일로 저장">⇩ 기획서</button><button class="top-action danger" data-action="delete" title="프로젝트 삭제">삭제</button></div></div>${overview}<div class="layout-switch" role="group" aria-label="작성 화면과 기획서 전환"><button type="button" data-action="edit-view" aria-pressed="true">✎ 체크리스트 작성</button><button type="button" data-action="preview-view" aria-pressed="false">▤ 실시간 기획서 보기</button></div><div id="editorLayout" class="editor-layout" data-mode="edit"><div class="editor-pane" id="editorPane"><header class="hero"><div class="hero-wrap"><div><div class="overline"><span class="glow-dot"></span> MY CONTENT JOURNAL</div><h1 id="heroTitle">${esc(p.title)}</h1><p>좋은 주제를 고르는 것부터 첫 3초 후킹, 대본 구성, 촬영과 최종 점검까지. <strong class="em">한 항목씩 확인할 때마다 완성률이 올라갑니다.</strong></p></div><div class="progress-ring" aria-label="전체 진행률 ${percent}%"><svg viewBox="0 0 160 160"><defs><linearGradient id="ringGrad" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#70aafb"/><stop offset="1" stop-color="#64efc4"/></linearGradient></defs><circle class="ring-base" cx="80" cy="80" r="65"></circle><circle id="ringValue" class="ring-value" cx="80" cy="80" r="65" stroke-dasharray="408.407" stroke-dashoffset="${408.407*(1-percent/100)}"></circle></svg><div class="ring-inner"><div class="ring-number"><span id="progressNum" style="font-size:inherit;color:inherit;margin:0">${percent}</span><span>%</span></div><div class="ring-label">COMPLETED</div></div></div></div><div class="hero-bottom"><div class="metrics"><div class="metric"><strong id="checkedNum">${done}</strong><span>확인 완료</span></div><div class="metric"><strong>${TOTAL}</strong><span>총 점검 항목</span></div><div class="metric"><strong>8</strong><span>제작 단계</span></div></div><div id="heroStatus" class="status-chip ${percent===100?'done':''}">${percent===100?'✦ 모든 점검 완료':percent===0?'◌ 기획을 시작해 보세요':'◔ 진행 중 · 자동 저장됨'}</div></div></header><div class="section-headline"><div><h2>제작 체크리스트</h2><p>각 단계를 열어 메모하고 확인 항목을 체크하세요. 체크한 항목만 달성률에 반영됩니다.</p></div><label class="toggle-only"><input type="checkbox" id="pendingOnly" ${onlyPending?'checked':''}>미완료 항목만</label></div><nav class="step-nav" aria-label="제작 단계 이동">${STEPS.map((s,i)=>`<button type="button" class="step-link ${openStep===s.id?'current':''}" data-open="${s.id}"><span>${String(i+1).padStart(2,'0')}</span>${s.short}</button>`).join('')}</nav><div class="stage-list">${STEPS.map((s,i)=>stageHtml(p,s,i)).join('')}</div><footer class="footer">CUTROOM STUDIO ✦ 매 영상의 기획, 점검, 회고를 한곳에.<br>브라우저 내부에 저장되므로 주기적으로 전체 기록을 백업하세요. 클라우드 동기화는 제공되지 않습니다.</footer></div><aside class="preview-pane" id="previewPane" aria-label="실시간 영상 기획서 미리보기"><div class="preview-toolbar"><div class="preview-toolbar-top"><div><div class="preview-title">✦ 내 영상 기획서</div><div class="preview-desc">작성하는 즉시 문서에 반영됩니다</div></div><span class="preview-live" id="previewState">LIVE PREVIEW</span></div><div class="preview-export"><select id="exportFormat" aria-label="기획서 다운로드 형식"><option value="pdf">PDF 문서 (.pdf)</option><option value="md">마크다운 (.md)</option><option value="html">웹 문서 (.html)</option></select><button type="button" data-action="export-report">↓ 기획서 다운로드</button></div><div class="preview-help">선택한 형식으로 현재 계정의 기획서만 저장합니다.</div></div><div class="preview-scroll" id="previewScroll"><article class="report-page" id="liveReport" aria-live="polite" aria-label="작성 중인 기획서"></article></div></aside></div>`;lastVisiblePct=percent;renderLiveDocument();}
+function render(){renderSidebar();renderMain();persist();setLayoutMode(layoutMode);}
+function updateProgress(before){const p=current(),n=count(p),per=pct(p);$('#ringValue')?.setAttribute('stroke-dashoffset',String(408.407*(1-per/100)));let el=$('#progressNum');if(el){const start=Number(el.textContent)||0;const t0=performance.now();const dur=450;function frame(t){let x=Math.min(1,(t-t0)/dur),ease=1-Math.pow(1-x,3);el.textContent=Math.round(start+(per-start)*ease);if(x<1)requestAnimationFrame(frame);}requestAnimationFrame(frame);}$('#checkedNum').textContent=n;$('.progress-ring')?.setAttribute('aria-label',`전체 진행률 ${per}%`);const status=$('#heroStatus');status.textContent=per===100?'✦ 모든 점검 완료':per===0?'◌ 기획을 시작해 보세요':'◔ 진행 중 · 자동 저장됨';status.classList.toggle('done',per===100);for(const s of STEPS){const stage=$(`#stage-${s.id}`);if(!stage)continue;stage.querySelector('.stage-done').textContent=stageCount(p,s);stage.querySelector('.stage-meter div').style.width=(100*stageCount(p,s)/s.items.length)+'%';}renderSidebar();if(before<100&&per===100){celebrate();showToast('완벽해요! 이 영상의 점검이 100% 완료되었습니다 ✨');}else if(per===100&&before===100)showToast('모든 항목이 완료되었습니다!');lastVisiblePct=per;renderLiveDocument();}
+function celebrate(){const layer=$('#confettiLayer');layer.textContent='';let cs=['#c7b7d9','#e7c8c9','#cadbcc','#f2dbaf','#c8dce5'];if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;for(let i=0;i<85;i++){let div=document.createElement('span');div.className='confetti';div.style.cssText=`left:${Math.random()*100}%;background:${cs[i%cs.length]};--fall:${(2+Math.random()*2.2).toFixed(2)}s;--drift:${(Math.random()-.5)*310}px;--rot:${Math.random()*180}deg;animation-delay:${Math.random()*.7}s`;layer.append(div);}setTimeout(()=>layer.textContent='',5400);}
+function openModal(mode='new'){modalMode=mode;const p=current(),a=currentAccount();$('#newOverlay').hidden=false;$('#modalTitle').textContent=mode==='rename'?'영상 기획 정보 수정 ✎':'새 영상 기획 ✦';$('#modalDesc').textContent=mode==='rename'?'영상 제목과 소속 계정을 바꿀 수 있어요. 체크 기록은 그대로 유지됩니다.':'계정에 소속된 영상으로 기록되어, 계정을 전환하면 해당 계정의 영상만 볼 수 있어요.';$('#newName').value=mode==='rename'?(p?.title||''):'';$('#newAccountSelect').innerHTML=state.accounts.map(o=>`<option value="${esc(o.id)}" ${o.id===(mode==='rename'?p?.accountId:a.id)?'selected':''}>${esc(o.name)}</option>`).join('');$('#newCategory').value=mode==='rename'?(p?.category||''):(a.topic||'');$('#newForm .create').textContent=mode==='rename'?'수정 완료 →':'프로젝트 만들기 →';setTimeout(()=>$('#newName').focus(),40);}
+function closeModal(){$('#newOverlay').hidden=true;}
+function openAccountModal(mode='add'){accountModalMode=mode;const a=currentAccount();$('#accountOverlay').hidden=false;$('#accountModalTitle').textContent=mode==='edit'?'계정 설정 ✎':'새 계정 추가 ✿';$('#accountModalDesc').textContent=mode==='edit'?'계정별 영상 테마와 타깃을 변경해도 기존 영상의 작성 내용은 유지됩니다.':'영상의 방향이 다른 계정을 추가하고, 각 계정의 기획 기록을 따로 관리하세요.';const fields={accountName:'name',accountHandleInput:'handle',accountTopic:'topic',accountAudience:'audience',accountTone:'tone',accountTagline:'tagline'};for(const [el,k]of Object.entries(fields))$('#'+el).value=mode==='edit'?(a[k]||''):'';$('#paletteOptions').innerHTML=Object.entries(PALETTES).map(([key,val])=>`<label class="palette-choice"><input type="radio" name="accountPalette" value="${key}" ${key===(mode==='edit'?a.palette:'lavender')?'checked':''}><span class="palette-dot" style="--dot:${val.dot}"></span>${val.name}</label>`).join('');$('#deleteAccount').hidden=mode!=='edit';$('#saveAccount').textContent=mode==='edit'?'변경사항 저장 →':'계정 추가하기 →';setTimeout(()=>$('#accountName').focus(),40);}
+function closeAccountModal(){$('#accountOverlay').hidden=true;}
+function downloadText(name,content,type){const blob=new Blob([content],{type:type||'text/plain;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);}const safeName=t=>t.replace(/[\\/:*?"<>|]/g,'_').slice(0,60)||'영상기획';
+function mdExport(p){const a=state.accounts.find(x=>x.id===p.accountId)||currentAccount();const lines=[`# ${p.title}`,``,`- 계정: ${a.name}${a.handle?' (@'+a.handle+')':''}`,`- 계정 테마: ${a.topic||'-'}`,`- 계정 타깃: ${a.audience||'-'}`,`- 카테고리: ${p.category||'-'}`,`- 작성일: ${fmtDate(p.createdAt)}`,`- 수정일: ${fmtDate(p.updatedAt)}`,`- 점검 진행률: **${pct(p)}% (${count(p)}/${TOTAL})**`,``,`---`,`
+`];const fieldsByStep={topic:[['mainTopic','영상 주제'],['audience','타깃'],['pain','해결할 고민']],hook:[['hookVisual','영상 후킹'],['hookCopy','카피 후킹'],['hookAudio','오디오 후킹'],['hookScene','상황 연출']],script:[['structure','기본 구조'],['keyMessage','핵심 한 문장'],['scriptText','대본']],video:[['shotlist','촬영 컷'],['visualNote','편집 메모']],audio:[['voicePlan','내레이션'],['musicPlan','음악/효과음']],text:[['overlayText','자막 내용'],['fontPlan','자막 위치·폰트']],finish:[['caption','게시글'],['cta','CTA'],['releaseDate','게시일'],['memo','회고/성과']]};for(const s of STEPS){lines.push(`## ${s.icon} ${s.title}`,'');for(const [k,t]of fieldsByStep[s.id]||[]){if(p.fields[k])lines.push(`### ${t}`,'',p.fields[k],'');}if(s.id==='topic')lines.push(`관심 요소: ${(p.chips.motives||[]).join(', ')||'-'}`,'');if(s.id==='hook')lines.push(`후킹 기법: ${(p.chips.hooks||[]).join(', ')||'-'}`,'');if(s.id==='benchmark')p.refs.forEach((r,i)=>{if(r.url||r.point||r.views)lines.push(`### ${REF_TYPES[i][0]}`,'',`- 원본: ${r.url||'-'}`,`- 조회수: ${r.views||'-'}`,`- 적용할 포인트: ${r.point||'-'}`,'');});lines.push('### 체크리스트','');s.items.forEach(([k,t])=>lines.push(`- [${p.checks[k]?'x':' '}] ${t}`));lines.push('');}return lines.join('\n');}
+// One shared report model powers both the live document and all export formats.
+const REPORT_FIELDS={
+ topic:[['mainTopic','영상 핵심 주제'],['audience','타깃 시청자'],['pain','해결할 고민 · 기대 결과']],
+ hook:[['hookVisual','첫 3초 · 영상'],['hookCopy','첫 3초 · 카피'],['hookAudio','첫 3초 · 오디오'],['hookScene','첫 3초 · 상황 연출']],
+ script:[['structure','내용 전개 구조'],['keyMessage','남길 핵심 문장'],['scriptText','전체 대본']],
+ video:[['shotlist','촬영 컷 리스트'],['visualNote','영상 · 편집 메모']],
+ audio:[['voicePlan','내레이션 플랜'],['musicPlan','음악 · 효과음']],
+ text:[['overlayText','자막 · 화면 문구'],['fontPlan','폰트 · 위치 · 안전 영역']],
+ finish:[['caption','게시글 캡션'],['cta','CTA 문구'],['releaseDate','게시 예정일'],['memo','제작 회고 · 성과']]
+};
+const STEP_OF_FIELD=Object.fromEntries(Object.entries(REPORT_FIELDS).flatMap(([step,fields])=>fields.map(([k])=>[k,step])));
+function reportModel(p){
+ const a=state.accounts.find(x=>x.id===p.accountId)||currentAccount();
+ return {project:p,account:a,percent:pct(p),completed:count(p),total:TOTAL,
+  sections:STEPS.map(s=>({step:s,done:stageCount(p,s),fields:(REPORT_FIELDS[s.id]||[]).map(([key,label])=>({key,label,value:clean(p.fields[key]||'')})),
+   refs:s.id==='benchmark'?p.refs.map((r,i)=>({title:REF_TYPES[i][0],url:clean(r.url),views:clean(r.views),point:clean(r.point)})):[],
+   chips:s.id==='topic'?(p.chips.motives||[]):s.id==='hook'?(p.chips.hooks||[]):[],
+   checks:s.items.map(([key,label])=>({key,label,done:!!p.checks[key]}))}))};
+}
+function reportMarkup(data){
+ const {project:p,account:a}=data;
+ return `<div class="report-kicker">CUTROOM STUDIO &nbsp;/&nbsp; REELS CREATIVE BRIEF</div>
+ <header class="report-header"><h1 class="report-h1">${esc(p.title)}</h1>
+ <div class="report-meta"><strong>계정</strong> &nbsp;${esc(a.name)}${a.handle?' · @'+esc(a.handle):''}<br>
+ <strong>테마</strong> &nbsp;${esc(a.topic||'미설정')} &nbsp; / &nbsp; <strong>분야</strong> &nbsp;${esc(p.category||'미설정')}<br>
+ <strong>타깃</strong> &nbsp;${esc(a.audience||'미설정')}<br>
+ ${a.tone?`<strong>톤앤매너</strong> &nbsp;${esc(a.tone)}<br>`:''}
+ ${a.tagline?`<strong>한 줄 콘셉트</strong> &nbsp;${esc(a.tagline)}<br>`:''}
+ <strong>작성일</strong> &nbsp;${fmtDate(p.createdAt)} &nbsp;·&nbsp; <strong>수정일</strong> &nbsp;${fmtDate(p.updatedAt)}</div>
+ <div class="report-pct-track"><span style="width:${data.percent}%"></span></div><div class="report-stat"><span>전체 제작 체크 현황</span><strong>${data.percent}% &nbsp;·&nbsp; ${data.completed} / ${data.total}개</strong></div></header>
+ ${data.sections.map(({step,done,fields,refs,chips,checks})=>`<section class="report-section" data-report-step="${step.id}">
+ <div class="report-section-title"><span class="report-no">${step.icon}</span><h3>${esc(step.title)}</h3><small>${done} / ${checks.length} 완료</small></div>
+ ${fields.length?fields.map(({label,value})=>`<div class="report-field"><div class="report-field-label">${esc(label)}</div><div class="report-field-value ${value?'':'is-empty'}">${value?esc(value):'아직 작성하지 않음'}</div></div>`).join(''):''}
+ ${chips.length?`<div class="report-pill-line">${chips.map(v=>`<span class="report-pill">${esc(v)}</span>`).join('')}</div>`:''}
+ ${refs.length?refs.map(r=>`<div class="report-ref"><h4>${esc(r.title)}</h4><div class="report-field"><div class="report-field-label">영상 · 링크</div><div class="report-field-value ${r.url?'':'is-empty'}">${r.url?esc(r.url):'미기입'}</div></div><div class="report-field"><div class="report-field-label">조회수 · 참고 포인트</div><div class="report-field-value ${r.views||r.point?'':'is-empty'}">${r.views?esc(r.views)+' · ':''}${r.point?esc(r.point):(!r.views?'아직 작성하지 않음':'')}</div></div></div>`).join(''):''}
+ <div class="report-list-title">CHECKLIST &nbsp; ${done}/${checks.length}</div><div class="report-checklist">${checks.map(c=>`<div class="report-item ${c.done?'done':''}"><span class="mark">✓</span><span>${esc(c.label)}</span></div>`).join('')}</div>
+ </section>`).join('')}<div class="report-footer">CUTROOM STUDIO &nbsp; · &nbsp; MADE WITH INTENTION</div>`;
+}
+function renderLiveDocument(changedKey){
+ const page=$('#liveReport'),p=current();if(!page||!p)return;
+ const scroll=$('#previewScroll'),pos=scroll?scroll.scrollTop:0;
+ page.innerHTML=reportMarkup(reportModel(p));
+ if(scroll)scroll.scrollTop=pos;
+ const changedStep=STEP_OF_FIELD[changedKey]||(STEPS.some(s=>s.id===changedKey)?changedKey:null);
+ if(changedStep){const section=page.querySelector(`[data-report-step="${changedStep}"]`);if(section){section.classList.remove('is-updated');void section.offsetWidth;section.classList.add('is-updated');}}
+}
+function setLayoutMode(mode){
+ layoutMode=mode==='preview'?'preview':'edit';
+ const layout=$('#editorLayout');if(!layout)return;
+ layout.dataset.mode=layoutMode;
+ document.querySelectorAll('[data-action="edit-view"],[data-action="preview-view"]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.action===(layoutMode==='preview'?'preview-view':'edit-view'))));
+}
+function reportMarkdown(p){
+ const d=reportModel(p),a=d.account;
+ const lines=[`# ${p.title}`,'',`- **계정:** ${a.name}${a.handle?' (@'+a.handle+')':''}`,`- **계정 테마:** ${a.topic||'미설정'}`,`- **카테고리:** ${p.category||'미설정'}`,`- **계정 타깃:** ${a.audience||'미설정'}`];
+ if(a.tone)lines.push(`- **톤앤매너:** ${a.tone}`);
+ if(a.tagline)lines.push(`- **한 줄 콘셉트:** ${a.tagline}`);
+ lines.push(`- **작성일:** ${fmtDate(p.createdAt)}`,`- **최근 수정:** ${fmtDate(p.updatedAt)}`,`- **점검 진행률:** ${d.percent}% (${d.completed}/${d.total})`,'','---','');
+ for(const sec of d.sections){
+  lines.push(`## ${sec.step.icon}. ${sec.step.title}`,'');
+  for(const f of sec.fields)if(f.value.trim())lines.push(`### ${f.label}`,'',f.value,'');
+  if(sec.chips.length)lines.push('**선택한 요소:** '+sec.chips.join(' · '),'');
+  if(sec.refs.length)for(const r of sec.refs)if(r.url||r.views||r.point)lines.push(`### ${r.title}`,'',`- 참고 영상: ${r.url||'-'}`,`- 조회수: ${r.views||'-'}`,`- 적용할 포인트: ${r.point||'-'}`,'');
+  lines.push(`### 점검표 (${sec.done}/${sec.checks.length})`,'');
+  for(const c of sec.checks)lines.push(`- [${c.done?'x':' '}] ${c.label}`);
+  lines.push('');
+ }
+ return lines.join('\n');
+}
+function reportStandaloneHtml(p){
+ const data=reportModel(p),css=document.querySelector('style').textContent;
+ return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(p.title)} · 영상 기획서</title><style>${css}\nbody{background:#f6f3ef;padding:30px;font-family:'Noto Sans KR','Malgun Gothic',sans-serif}.report-page{max-width:780px;margin:0 auto;padding:55px 60px}.report-h1{font-size:34px}.report-section-title h3{font-size:16px}.report-field-value{font-size:13px}.report-item{font-size:12px}@media print{@page{size:A4;margin:16mm}body{background:white;padding:0}.report-page{box-shadow:none;border:0;max-width:none;padding:0}.report-section{break-inside:avoid-page}.report-section-title{break-after:avoid}}</style></head><body><article class="report-page">${reportMarkup(data)}</article></body></html>`;
+}
+function exportReport(){
+ const p=current();if(!p)return;
+ const choice=$('#exportFormat')?.value||'pdf';
+ const name=safeName(currentAccount().name+'_'+p.title)+'_기획서';
+ if(choice==='md') {downloadText(name+'.md',reportMarkdown(p),'text/markdown;charset=utf-8');showToast('Markdown 기획서를 다운로드했어요.');return;}
+ if(choice==='html'){downloadText(name+'.html',reportStandaloneHtml(p),'text/html;charset=utf-8');showToast('웹 문서 기획서를 다운로드했어요.');return;}
+ showToast('PDF 기획서를 만들고 있어요…');
+ requestAnimationFrame(()=>setTimeout(()=>{try{downloadPdfReport(reportModel(p),name+'.pdf');showToast('PDF 기획서를 다운로드했어요.');}catch(e){showToast('PDF 생성 실패: '+e.message);console.error(e);}},40));
+}
+// Native, dependency-free PDF export: Korean text is drawn through the browser's font engine.
+// The generated PDF is image-based; for selectable text use the HTML or Markdown export.
+function downloadPdfReport(d,filename){
+ const W=1240,H=1754,M=96,BOTTOM=139,RIGHT=W-M,WIDTH=W-2*M;
+ const pages=[];let canvas,ctx,y,pageNo=0;
+ function begin(){pageNo++;canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;ctx=canvas.getContext('2d',{alpha:false});if(!ctx)throw Error('Canvas를 사용할 수 없습니다.');
+  ctx.fillStyle='#fffefa';ctx.fillRect(0,0,W,H);ctx.fillStyle='#d5c3dc';ctx.fillRect(0,0,W,11);ctx.fillStyle='#aa94b3';ctx.font='700 18px "Malgun Gothic","Noto Sans KR",sans-serif';ctx.fillText('C U T R O O M   /   C R E A T I V E   B R I E F',M,72);y=133;
+ }
+ function finish(){ctx.strokeStyle='#e4dde3';ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(M,H-100);ctx.lineTo(RIGHT,H-100);ctx.stroke();ctx.fillStyle='#a99aaa';ctx.font='17px "Malgun Gothic","Noto Sans KR",sans-serif';ctx.fillText('CUTROOM STUDIO · 영상 기획서',M,H-67);ctx.textAlign='right';ctx.fillText(String(pageNo).padStart(2,'0'),RIGHT,H-67);ctx.textAlign='left';const data=canvas.toDataURL('image/jpeg',.91).split(',')[1];const bin=atob(data),out=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)out[i]=bin.charCodeAt(i);pages.push(out);}
+ function nextIf(need){if(y+need>H-BOTTOM){finish();begin();}}
+ function font(size,weight=400){ctx.font=`${weight} ${size}px "Malgun Gothic","Noto Sans KR","Apple SD Gothic Neo",sans-serif`;}
+ function wrap(text,maxWidth){const rows=[];for(const paragraph of String(text??'').split(/\r?\n/)){if(!paragraph){rows.push('');continue;}let line='';const chunks=paragraph.split(/(\s+)/);for(let token of chunks){if(!token)continue;if(!line&&!token.trim())continue;if(ctx.measureText(line+token).width<=maxWidth){line+=token;continue;}if(line.trim()){rows.push(line.trimEnd());line='';}if(ctx.measureText(token).width<=maxWidth){line=token.trimStart();continue;}for(const char of Array.from(token)){if(ctx.measureText(line+char).width>maxWidth&&line){rows.push(line);line='';}line+=char;}}
+  if(line)rows.push(line.trimEnd());}return rows.length?rows:[''];}
+ function paragraph(text,opts={}){const x=opts.x??M,maxW=opts.w??WIDTH,size=opts.size??22,height=opts.lineHeight??34,color=opts.color??'#514950',weight=opts.weight??400,after=opts.after??0;
+  font(size,weight);const rows=wrap(text,maxW);for(const line of rows){nextIf(height+5);font(size,weight);ctx.fillStyle=color;if(line)ctx.fillText(line,x,y);y+=height;}y+=after;
+ }
+ function rule(margin=17){nextIf(margin+10);y+=margin;ctx.strokeStyle='#e9e4e5';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(M,y);ctx.lineTo(RIGHT,y);ctx.stroke();y+=margin;}
+ function label(lbl){paragraph(lbl,{size:18,weight:700,color:'#897a91',lineHeight:27,after:4});}
+ function value(val){paragraph(val,{size:21,color:'#474047',lineHeight:32,after:13});}
+ function header(txt){nextIf(114);y+=17;ctx.fillStyle='#e7ddee';ctx.fillRect(M,y-28,52,52);ctx.fillStyle='#806e8b';font(20,700);ctx.fillText(txt.slice(0,2),M+11,y+4);font(26,700);ctx.fillStyle='#514551';ctx.fillText(txt.slice(3),M+68,y+6);y+=40;ctx.strokeStyle='#eee8e9';ctx.beginPath();ctx.moveTo(M,y);ctx.lineTo(RIGHT,y);ctx.stroke();y+=24;}
+ begin();
+ paragraph(d.project.title,{size:43,weight:700,color:'#423747',lineHeight:58,after:20});
+ paragraph(`계정  ${d.account.name}${d.account.handle?'  @'+d.account.handle:''}    ·    ${d.project.category||'분야 미설정'}`,{size:21,color:'#847588',lineHeight:36});
+ if(d.account.topic)paragraph(`콘텐츠 테마  ${d.account.topic}`,{size:20,color:'#847588',lineHeight:34});
+ if(d.account.audience)paragraph(`타깃  ${d.account.audience}`,{size:20,color:'#847588',lineHeight:34});
+ if(d.account.tone)paragraph(`톤앤매너  ${d.account.tone}`,{size:20,color:'#847588',lineHeight:34});
+ if(d.account.tagline)paragraph(`한 줄 콘셉트  ${d.account.tagline}`,{size:20,color:'#847588',lineHeight:34});
+ paragraph(`작성일 ${fmtDate(d.project.createdAt)}   |   수정일 ${fmtDate(d.project.updatedAt)}`,{size:18,color:'#9a8e96',lineHeight:31,after:12});
+ nextIf(84);ctx.fillStyle='#eee9f0';ctx.fillRect(M,y,WIDTH,11);ctx.fillStyle='#baa2c8';ctx.fillRect(M,y,WIDTH*d.percent/100,11);y+=31;
+ paragraph(`완성률 ${d.percent}%   ·   체크 완료 ${d.completed} / ${d.total}`,{size:20,weight:700,color:'#795f87',lineHeight:29,after:13});rule(17);
+ for(const section of d.sections){
+  header(`${section.step.icon}. ${section.step.title}`);
+  for(const f of section.fields)if(f.value.trim()){label(f.label);value(f.value);}
+  if(section.chips.length){label('선택한 요소');value(section.chips.join('  ·  '));}
+  for(const r of section.refs)if(r.url||r.views||r.point){nextIf(95);paragraph(r.title,{size:21,weight:700,color:'#7b6587',lineHeight:34,after:2});if(r.url){label('참고 영상');value(r.url);}if(r.views){label('조회수');value(r.views);}if(r.point){label('적용할 포인트');value(r.point);}}
+  nextIf(80);paragraph(`CHECKLIST   ${section.done}/${section.checks.length}`,{size:19,weight:700,color:'#887a88',lineHeight:29,after:12});
+  for(const c of section.checks){font(19,400);const rows=wrap(c.label,WIDTH-42),needed=rows.length*29+11;nextIf(needed);
+   ctx.fillStyle=c.done?'#bdd4c2':'#fffefa';ctx.strokeStyle=c.done?'#9db99f':'#d3cbd2';ctx.lineWidth=2;ctx.fillRect(M+2,y-17,19,19);ctx.strokeRect(M+2,y-17,19,19);
+   if(c.done){ctx.fillStyle='#547e61';font(19,700);ctx.fillText('✓',M+3,y-1);}
+   for(let i=0;i<rows.length;i++){font(19,400);ctx.fillStyle=c.done?'#55715e':'#817881';ctx.fillText(rows[i],M+34,y+i*29);}y+=needed;
+  }y+=23;
+ }
+ finish();
+ const bytes=makePdfFromJpegs(pages,W,H);
+ const url=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));const a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
+}
+function makePdfFromJpegs(jpegs,width,height){
+ const encoder=new TextEncoder(),chunks=[];let offset=0;const offsets=[0];
+ const write=data=>{const b=typeof data==='string'?encoder.encode(data):data;chunks.push(b);offset+=b.length;};
+ const obj=(id,fn)=>{offsets[id]=offset;write(`${id} 0 obj\n`);fn();write('\nendobj\n');};
+ const pagesIds=jpegs.map((_,i)=>3+i*3),total=2+jpegs.length*3;
+ write('%PDF-1.4\n%CUTROOM\n');
+ obj(1,()=>write('<< /Type /Catalog /Pages 2 0 R >>'));
+ obj(2,()=>write(`<< /Type /Pages /Count ${jpegs.length} /Kids [${pagesIds.map(x=>`${x} 0 R`).join(' ')}] >>`));
+ for(let i=0;i<jpegs.length;i++){
+  const pid=pagesIds[i],content=`q\n595.28 0 0 841.89 0 0 cm\n/Im0 Do\nQ\n`,jpg=jpegs[i];
+  obj(pid,()=>write(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /XObject << /Im0 ${pid+2} 0 R >> >> /Contents ${pid+1} 0 R >>`));
+  obj(pid+1,()=>{write(`<< /Length ${encoder.encode(content).length} >>\nstream\n`);write(content);write('endstream');});
+  obj(pid+2,()=>{write(`<< /Type /XObject /Subtype /Image /Width ${width} /Height ${height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpg.length} >>\nstream\n`);write(jpg);write('\nendstream');});
+ }
+ const xref=offset;write(`xref\n0 ${total+1}\n0000000000 65535 f \n`);
+ for(let i=1;i<=total;i++)write(`${String(offsets[i]).padStart(10,'0')} 00000 n \n`);
+ write(`trailer\n<< /Size ${total+1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`);
+ const ret=new Uint8Array(offset);let k=0;for(const ch of chunks){ret.set(ch,k);k+=ch.length;}return ret;
+}
+
+function action(a){const p=current();switch(a){
+case'edit-view':setLayoutMode('edit');break;
+case'preview-view':setLayoutMode('preview');break;
+case'export-report':exportReport();break;
+case'new':openModal();break;
+case'rename':if(p)openModal('rename');break;
+case'account-add':openAccountModal('add');break;
+case'account-edit':openAccountModal('edit');break;
+case'duplicate':{if(!p)return;let q=normalize({...p,id:id(),title:p.title+' (복제)',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});q.accountId=p.accountId;q.checks={};state.projects.unshift(q);state.activeId=q.id;openStep='topic';render();showToast('같은 계정에 새 기획으로 복제했어요. 체크는 초기화됩니다.');break;}
+case'delete':{if(!p)return;if(!confirm(`“${p.title}” 기획과 체크 기록을 삭제할까요?\n이 작업은 취소할 수 없습니다.`))return;state.projects=state.projects.filter(x=>x.id!==p.id);state.activeId=inAccount(state.activeAccountId).sort((a,b)=>Date.parse(b.updatedAt)-Date.parse(a.updatedAt))[0]?.id||null;openStep='topic';render();showToast('기획을 삭제했습니다.');break;}
+case'backup':{downloadText('컷룸_계정별_전체기록_'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify({app:'cutroom-reels',version:2,exportedAt:new Date().toISOString(),accounts:state.accounts,projects:state.projects},null,2),'application/json;charset=utf-8');showToast('계정 정보와 전체 영상 기록을 백업했습니다.');break;}
+case'import':$('#importFile').click();break;
+case'markdown':{if(!p)return;downloadText(safeName(currentAccount().name+'_'+p.title)+'_기획서.md',mdExport(p),'text/markdown;charset=utf-8');showToast('현재 영상의 기획서를 저장했습니다.');break;}
+}}
+document.addEventListener('click',ev=>{const act=ev.target.closest('[data-action]');if(act){action(act.dataset.action);return;}const project=ev.target.closest('[data-project]');if(project){const target=state.projects.find(p=>p.id===project.dataset.project&&p.accountId===state.activeAccountId);if(!target)return;state.activeId=target.id;openStep='topic';render();if(window.innerWidth<830){$('#sidebar').classList.add('collapsed');$('#mobileToggle').setAttribute('aria-expanded','false');}window.scrollTo({top:0,behavior:'smooth'});return;}const toggle=ev.target.closest('[data-open]');if(toggle){openStep=openStep===toggle.dataset.open?'':toggle.dataset.open;renderMain();setLayoutMode(layoutMode);if(openStep&&ev.target.classList.contains('step-link'))requestAnimationFrame(()=>document.getElementById('stage-'+openStep)?.scrollIntoView({behavior:'smooth',block:'start'}));return;}const chip=ev.target.closest('[data-chip]');if(chip){const p=current(),key=chip.dataset.chipkey,value=chip.dataset.chip,list=p.chips[key]||[];p.chips[key]=list.includes(value)?list.filter(x=>x!==value):[...list,value];chip.classList.toggle('selected');chip.setAttribute('aria-pressed',String(p.chips[key].includes(value)));touch(key==='hooks'?'hook':'topic');renderSidebar();}});
+document.addEventListener('change',ev=>{if(ev.target.id==='accountSwitch'){selectAccount(ev.target.value);return;}if(ev.target.matches('[data-check]')){let p=current(),k=ev.target.dataset.check,prev=pct(p);p.checks[k]=ev.target.checked;touch();ev.target.closest('.check-row').classList.toggle('checked',ev.target.checked);if(onlyPending&&ev.target.checked){ev.target.closest('.check-row').remove();const list=$(`#stage-${openStep} .check-list`);if(list&&!list.children.length)list.innerHTML='<div class="done-banner" style="grid-column:1/-1">✓ 이 단계의 점검을 모두 완료했습니다.</div>';}updateProgress(prev);}if(ev.target.id==='pendingOnly'){onlyPending=ev.target.checked;renderMain();setLayoutMode(layoutMode);}});
+document.addEventListener('input',ev=>{if(ev.target.matches('[data-field]')){const p=current();p.fields[ev.target.dataset.field]=clean(ev.target.value);touch(ev.target.dataset.field);}if(ev.target.matches('[data-ref]')){const p=current();p.refs[Number(ev.target.dataset.ref)][ev.target.dataset.refkey]=clean(ev.target.value);touch('benchmark');}if(ev.target.id==='historySearch'){search=ev.target.value;renderSidebar();}if(ev.target.id==='newAccountSelect'&&modalMode==='new'&&!$('#newName').value.trim()){const a=state.accounts.find(x=>x.id===ev.target.value);$('#newCategory').value=a?.topic||'';}});
+$('#newForm').addEventListener('submit',ev=>{ev.preventDefault();const title=$('#newName').value.trim();const accountId=$('#newAccountSelect').value;if(!title||!state.accounts.some(a=>a.id===accountId))return;if(modalMode==='rename'){const p=current();if(!p)return;p.title=clean(title,120);p.category=clean($('#newCategory').value.trim(),80);p.accountId=accountId;p.updatedAt=new Date().toISOString();state.activeAccountId=accountId;state.activeId=p.id;persist();closeModal();render();showToast('영상 정보와 소속 계정을 저장했습니다.');}else{const a=state.accounts.find(a=>a.id===accountId),p=newProject(title,$('#newCategory').value.trim()||a.topic,accountId);if(a.audience)p.fields.audience=a.audience;state.projects.unshift(p);state.activeAccountId=accountId;state.activeId=p.id;openStep='topic';closeModal();render();showToast(`“${a.name}”에 새 영상 기획을 만들었습니다.`);window.scrollTo({top:0,behavior:'smooth'});}});
+$('#accountForm').addEventListener('submit',ev=>{ev.preventDefault();const name=$('#accountName').value.trim();if(!name)return;const palette=document.querySelector('input[name="accountPalette"]:checked')?.value||'lavender';const values={name:clean(name,70),handle:clean($('#accountHandleInput').value.trim().replace(/^@/,''),70),topic:clean($('#accountTopic').value.trim(),80),audience:clean($('#accountAudience').value.trim(),160),tone:clean($('#accountTone').value.trim(),160),tagline:clean($('#accountTagline').value.trim(),220),palette};if(accountModalMode==='edit'){Object.assign(currentAccount(),values);closeAccountModal();render();showToast('계정 테마와 설정을 저장했습니다.');}else{if(state.accounts.length>=80){showToast('계정을 최대 80개까지 만들 수 있어요.');return;}const a={...newAccount(),...values};state.accounts.push(a);state.activeAccountId=a.id;state.activeId=null;openStep='topic';search='';$('#historySearch').value='';closeAccountModal();render();showToast(`“${a.name}” 계정을 추가했습니다.`);}});
+$('#deleteAccount').addEventListener('click',()=>{if(accountModalMode!=='edit')return;if(state.accounts.length===1){showToast('마지막 계정은 삭제할 수 없어요.');return;}const a=currentAccount(),fallback=state.accounts.find(x=>x.id!==a.id),cnt=inAccount(a.id).length;const msg=cnt?`“${a.name}” 계정을 삭제할까요?\n소속 영상 ${cnt}개는 삭제되지 않고 “${fallback.name}” 계정으로 이동합니다.`:`“${a.name}” 계정을 삭제할까요?`;if(!confirm(msg))return;for(const p of inAccount(a.id))p.accountId=fallback.id;state.accounts=state.accounts.filter(x=>x.id!==a.id);state.activeAccountId=fallback.id;state.activeId=inAccount(fallback.id)[0]?.id||null;closeAccountModal();render();showToast(`계정을 삭제했습니다. 영상 ${cnt}개는 보존됩니다.`);});
+$('#cancelNew').addEventListener('click',closeModal);$('#newOverlay').addEventListener('click',ev=>{if(ev.target===$('#newOverlay'))closeModal();});$('#cancelAccount').addEventListener('click',closeAccountModal);$('#accountOverlay').addEventListener('click',ev=>{if(ev.target===$('#accountOverlay'))closeAccountModal();});document.addEventListener('keydown',ev=>{if(ev.key==='Escape'){closeModal();closeAccountModal();}});$('#mobileToggle').addEventListener('click',()=>{const side=$('#sidebar');const collapsed=side.classList.toggle('collapsed');$('#mobileToggle').setAttribute('aria-expanded',String(!collapsed));});
+$('#importFile').addEventListener('change',async(ev)=>{const file=ev.target.files[0];if(!file)return;try{if(file.size>10*1024*1024)throw Error('파일이 너무 큽니다.');const data=JSON.parse(await file.text());if(data.app!=='cutroom-reels'||!Array.isArray(data.projects)||data.projects.length>500)throw Error('컷룸 백업 파일이 아닙니다.');if(!data.projects.length&&(!Array.isArray(data.accounts)||!data.accounts.length))throw Error('복원할 내용이 없습니다.');if(state.projects.length+data.projects.length>500)throw Error('프로젝트는 최대 500개까지 복원할 수 있습니다.');const accountMap=new Map();if(Array.isArray(data.accounts)&&data.accounts.length){if(data.accounts.length+state.accounts.length>80)throw Error('계정은 최대 80개까지 복원할 수 있습니다.');for(const old of data.accounts){const a=normalizeAccount(old);if(!accountMap.has(a.id)){const match=state.accounts.find(x=>x.id===a.id);if(!match){state.accounts.push(a);accountMap.set(old.id,a.id);}else{accountMap.set(old.id,match.id);}}}}else{const acc=newAccount('이전 백업 기록');state.accounts.push(acc);accountMap.set('legacy',acc.id);}const existingIds=new Set(state.projects.map(p=>p.id));const imported=data.projects.map(raw=>{const p=normalize(raw);if(existingIds.has(p.id))p.id=id();existingIds.add(p.id);p.accountId=accountMap.get(raw.accountId)||accountMap.get('legacy')||state.accounts[0].id;return p;});state.projects.unshift(...imported);state.activeAccountId=imported[0]?.accountId||state.accounts[state.accounts.length-1].id;state.activeId=imported[0]?.id||null;repairState();openStep='topic';search='';$('#historySearch').value='';render();showToast(`계정과 영상 기록을 복원했습니다. (영상 ${imported.length}개)`);}catch(e){showToast('가져오기 실패: '+e.message);}finally{ev.target.value='';}});
+
+render();
+})();
+</script>
+</body></html>
