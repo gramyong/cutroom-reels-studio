@@ -179,7 +179,7 @@ async function loadSupabase(){
  if(!config.configured) return null;
  if(!/^https:\/\/[a-z0-9.-]+\/?$/i.test(config.url)||!config.publishableKey)throw Error('invalid config');
  await new Promise((resolve,reject)=>{
-  const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.76.1/dist/umd/supabase.min.js';
+  const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
   s.onload=resolve;s.onerror=()=>reject(Error('Supabase SDK 다운로드 실패'));document.head.append(s);
  });
  if(!window.supabase?.createClient)throw Error('Supabase SDK 초기화 실패');
